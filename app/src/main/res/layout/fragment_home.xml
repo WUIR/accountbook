@@ -117,17 +117,14 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tvEmptyBills"
+        <LinearLayout
+            android:id="@+id/recentBillsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:background="@drawable/bg_panel"
-            android:gravity="center"
             android:minHeight="96dp"
-            android:padding="18dp"
-            android:text="@string/no_bill_records"
-            android:textColor="@color/text_secondary"
-            android:textSize="15sp" />
+            android:orientation="vertical"
+            android:padding="18dp" />
     </LinearLayout>
 </ScrollView>
