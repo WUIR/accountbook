@@ -22,6 +22,15 @@
     <string name="today">今天</string>
     <string name="hint_remark">备注，可不填</string>
     <string name="save_bill">保存</string>
+    <string name="save_bill_success">保存成功</string>
+    <string name="save_bill_failed">保存失败，请重试</string>
+    <string name="error_amount_empty">请输入金额</string>
+    <string name="error_amount_invalid">金额格式不正确</string>
+    <string name="error_amount_positive">金额必须大于 0</string>
+    <string name="error_category_required">请选择分类</string>
+    <string name="error_account_required">请选择账户</string>
+    <string name="no_categories">暂无分类数据</string>
+    <string name="no_accounts">暂无账户数据</string>
     <string name="month_budget">月度预算</string>
     <string name="hint_budget">请输入月度预算</string>
     <string name="budget_warn_enabled">开启预算提醒</string>
