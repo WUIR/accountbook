@@ -10,6 +10,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.accountbook.db.AccountBookDbHelper;
 import com.example.accountbook.fragment.AddBillFragment;
 import com.example.accountbook.fragment.HomeFragment;
 import com.example.accountbook.fragment.MineFragment;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
       v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
       return insets;
     });
+    new AccountBookDbHelper(this).getWritableDatabase();
     setupBottomNavigation();
     if (savedInstanceState == null) {
       switchToFragment(TAG_HOME);
