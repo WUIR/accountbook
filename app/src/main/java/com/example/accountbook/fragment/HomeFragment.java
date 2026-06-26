@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import com.example.accountbook.R;
 import com.example.accountbook.db.BillRecordDao;
 import com.example.accountbook.model.BillRecord;
+import com.example.accountbook.util.PreferenceUtils;
 
 import java.util.Calendar;
 import java.util.List;
@@ -25,6 +27,8 @@ public class HomeFragment extends Fragment {
   private TextView tvMonthlyBalance;
   private TextView tvMonthlyIncome;
   private TextView tvMonthlyExpense;
+  private ProgressBar progressBudget;
+  private TextView tvBudgetStatus;
   private LinearLayout recentBillsContainer;
   private BillRecordDao billRecordDao;
 
@@ -44,6 +48,8 @@ public class HomeFragment extends Fragment {
     tvMonthlyBalance = view.findViewById(R.id.tvMonthlyBalance);
     tvMonthlyIncome = view.findViewById(R.id.tvMonthlyIncome);
     tvMonthlyExpense = view.findViewById(R.id.tvMonthlyExpense);
+    progressBudget = view.findViewById(R.id.progressBudget);
+    tvBudgetStatus = view.findViewById(R.id.tvBudgetStatus);
     recentBillsContainer = view.findViewById(R.id.recentBillsContainer);
     refreshHomeData();
   }
@@ -64,7 +70,30 @@ public class HomeFragment extends Fragment {
     tvMonthlyIncome.setText(getString(R.string.month_income_value, income));
     tvMonthlyExpense.setText(getString(R.string.month_expense_value, expense));
     tvMonthlyBalance.setText(formatMoney(income - expense));
+    refreshBudgetStatus(expense);
     refreshRecentBills();
+  }
+
+  private void refreshBudgetStatus(double expense) {
+    double monthlyBudget = PreferenceUtils.getMonthlyBudget(requireContext());
+    boolean warnEnabled = PreferenceUtils.isBudgetWarnEnabled(requireContext());
+    if (monthlyBudget <= 0) {
+      progressBudget.setProgress(0);
+      tvBudgetStatus.setText(R.string.budget_not_set);
+      return;
+    }
+    double ratio = expense / monthlyBudget;
+    int progress = (int) Math.min(100, Math.round(ratio * 100));
+    progressBudget.setProgress(progress);
+    if (!warnEnabled) {
+      tvBudgetStatus.setText(getString(R.string.budget_progress_value, progress));
+    } else if (ratio >= 1) {
+      tvBudgetStatus.setText(getString(R.string.budget_over_limit, progress));
+    } else if (ratio >= 0.8) {
+      tvBudgetStatus.setText(getString(R.string.budget_warning, progress));
+    } else {
+      tvBudgetStatus.setText(getString(R.string.budget_normal, progress));
+    }
   }
 
   private void refreshRecentBills() {

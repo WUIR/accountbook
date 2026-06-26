@@ -1,11 +1,16 @@
 package com.example.accountbook.fragment;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,6 +19,7 @@ import androidx.fragment.app.Fragment;
 import com.example.accountbook.R;
 import com.example.accountbook.db.AccountDao;
 import com.example.accountbook.model.Account;
+import com.example.accountbook.util.PreferenceUtils;
 
 import java.util.List;
 import java.util.Locale;
@@ -22,6 +28,8 @@ public class MineFragment extends Fragment {
 
   private AccountDao accountDao;
   private LinearLayout accountListContainer;
+  private EditText etMonthlyBudget;
+  private CheckBox cbBudgetWarnEnabled;
 
   @Nullable
   @Override
@@ -36,7 +44,12 @@ public class MineFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     accountDao = new AccountDao(requireContext());
+    etMonthlyBudget = view.findViewById(R.id.etMonthlyBudget);
+    cbBudgetWarnEnabled = view.findViewById(R.id.cbBudgetWarnEnabled);
     accountListContainer = view.findViewById(R.id.accountListContainer);
+    Button btnSaveBudget = view.findViewById(R.id.btnSaveBudget);
+    btnSaveBudget.setOnClickListener(v -> saveBudgetConfig());
+    loadBudgetConfig();
     refreshAccountBalances();
   }
 
@@ -59,6 +72,34 @@ public class MineFragment extends Fragment {
     for (Account account : accounts) {
       accountListContainer.addView(createAccountTextView(formatAccount(account)));
     }
+  }
+
+  private void loadBudgetConfig() {
+    double monthlyBudget = PreferenceUtils.getMonthlyBudget(requireContext());
+    etMonthlyBudget.setText(monthlyBudget > 0
+        ? String.format(Locale.CHINA, "%.2f", monthlyBudget)
+        : "");
+    cbBudgetWarnEnabled.setChecked(PreferenceUtils.isBudgetWarnEnabled(requireContext()));
+  }
+
+  private void saveBudgetConfig() {
+    String budgetText = etMonthlyBudget.getText().toString().trim();
+    double monthlyBudget = 0;
+    if (!TextUtils.isEmpty(budgetText)) {
+      try {
+        monthlyBudget = Double.parseDouble(budgetText);
+      } catch (NumberFormatException e) {
+        Toast.makeText(requireContext(), R.string.error_budget_invalid, Toast.LENGTH_SHORT).show();
+        return;
+      }
+      if (monthlyBudget < 0) {
+        Toast.makeText(requireContext(), R.string.error_budget_negative, Toast.LENGTH_SHORT).show();
+        return;
+      }
+    }
+    PreferenceUtils.saveBudgetConfig(
+        requireContext(), monthlyBudget, cbBudgetWarnEnabled.isChecked());
+    Toast.makeText(requireContext(), R.string.save_budget_success, Toast.LENGTH_SHORT).show();
   }
 
   private TextView createAccountTextView(String text) {
