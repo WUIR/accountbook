@@ -2,4 +2,14 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="app_background">#F5F7FA</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="border">#DCE3EA</color>
+    <color name="text_primary">#1F2933</color>
+    <color name="text_secondary">#607080</color>
+    <color name="text_hint">#9AA6B2</color>
+    <color name="income">#147D64</color>
+    <color name="expense">#C24132</color>
+    <color name="nav_icon">#5A6673</color>
+    <color name="bottom_nav_item_color">#2F6FED</color>
 </resources>

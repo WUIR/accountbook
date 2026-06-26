@@ -1,6 +1,8 @@
 *.iml
 .gradle
 /.mycodex/
+/AGENTS.md
+/docs/
 /local.properties
 /.idea/caches
 /.idea/
