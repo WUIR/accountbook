@@ -8,8 +8,12 @@
     <color name="text_primary">#1F2933</color>
     <color name="text_secondary">#607080</color>
     <color name="text_hint">#9AA6B2</color>
+    <color name="brand_green">#39B85A</color>
+    <color name="brand_green_dark">#2EA24D</color>
+    <color name="brand_green_soft">#EAF8EF</color>
+    <color name="white_soft">#EAF8EF</color>
     <color name="income">#147D64</color>
     <color name="expense">#C24132</color>
     <color name="nav_icon">#5A6673</color>
-    <color name="bottom_nav_item_color">#2F6FED</color>
+    <color name="bottom_nav_item_color">@color/brand_green</color>
 </resources>

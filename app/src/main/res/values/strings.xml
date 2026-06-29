@@ -3,7 +3,12 @@
     <string name="home">首页</string>
     <string name="add_bill">记账</string>
     <string name="mine">我的</string>
-    <string name="home_title">首页</string>
+    <string name="home_title">轻记账</string>
+    <string name="home_subtitle">记录真实生活</string>
+    <string name="month_income_label">收入</string>
+    <string name="month_expense_label">支出</string>
+    <string name="month_balance_label">结余</string>
+    <string name="all_bills_entry">全部 ></string>
     <string name="add_bill_title">记一笔</string>
     <string name="mine_title">我的</string>
     <string name="month_summary">本月结余</string>
