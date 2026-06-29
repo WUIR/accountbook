@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.accountbook.MainActivity;
 import com.example.accountbook.R;
 import com.example.accountbook.db.AccountDao;
 import com.example.accountbook.model.Account;
@@ -49,6 +50,8 @@ public class MineFragment extends Fragment {
     accountListContainer = view.findViewById(R.id.accountListContainer);
     Button btnSaveBudget = view.findViewById(R.id.btnSaveBudget);
     btnSaveBudget.setOnClickListener(v -> saveBudgetConfig());
+    Button btnRecycleBin = view.findViewById(R.id.btnRecycleBin);
+    btnRecycleBin.setOnClickListener(v -> ((MainActivity) requireActivity()).openRecycleBin());
     loadBudgetConfig();
     refreshAccountBalances();
   }

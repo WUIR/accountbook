@@ -35,6 +35,25 @@ public class CategoryDao {
     return categories;
   }
 
+  public List<Category> getAllCategories() {
+    List<Category> categories = new ArrayList<>();
+    SQLiteDatabase db = dbHelper.getReadableDatabase();
+    try (Cursor cursor = db.query(
+        AccountBookDbHelper.TABLE_CATEGORY,
+        null,
+        null,
+        null,
+        null,
+        null,
+        AccountBookDbHelper.COLUMN_TYPE + " ASC, "
+            + AccountBookDbHelper.COLUMN_SORT_ORDER + " ASC")) {
+      while (cursor.moveToNext()) {
+        categories.add(readCategory(cursor));
+      }
+    }
+    return categories;
+  }
+
   private Category readCategory(Cursor cursor) {
     Category category = new Category();
     category.setId(cursor.getLong(cursor.getColumnIndexOrThrow(AccountBookDbHelper.COLUMN_ID)));

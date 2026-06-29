@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.accountbook.MainActivity;
 import com.example.accountbook.R;
 import com.example.accountbook.db.BillRecordDao;
 import com.example.accountbook.model.BillRecord;
@@ -51,6 +52,10 @@ public class HomeFragment extends Fragment {
     progressBudget = view.findViewById(R.id.progressBudget);
     tvBudgetStatus = view.findViewById(R.id.tvBudgetStatus);
     recentBillsContainer = view.findViewById(R.id.recentBillsContainer);
+    view.findViewById(R.id.btnAllBills)
+        .setOnClickListener(v -> ((MainActivity) requireActivity()).openBillList());
+    view.findViewById(R.id.btnStatistics)
+        .setOnClickListener(v -> ((MainActivity) requireActivity()).openStatistics());
     refreshHomeData();
   }
 

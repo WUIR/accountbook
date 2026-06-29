@@ -73,6 +73,13 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <Button
+            android:id="@+id/btnRecycleBin"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:text="回收站" />
+
         <LinearLayout
             android:id="@+id/accountListContainer"
             android:layout_width="match_parent"
