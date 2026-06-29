@@ -50,14 +50,14 @@ public class MineFragment extends Fragment {
     accountListContainer = view.findViewById(R.id.accountListContainer);
     Button btnSaveBudget = view.findViewById(R.id.btnSaveBudget);
     btnSaveBudget.setOnClickListener(v -> saveBudgetConfig());
-    Button btnRecycleBin = view.findViewById(R.id.btnRecycleBin);
-    btnRecycleBin.setOnClickListener(v -> ((MainActivity) requireActivity()).openRecycleBin());
-    Button btnExport = view.findViewById(R.id.btnExport);
-    btnExport.setOnClickListener(v -> ((MainActivity) requireActivity()).openExport());
-    Button btnAccountManage = view.findViewById(R.id.btnAccountManage);
-    btnAccountManage.setOnClickListener(v -> ((MainActivity) requireActivity()).openAccountManage());
-    Button btnCategoryManage = view.findViewById(R.id.btnCategoryManage);
-    btnCategoryManage.setOnClickListener(v -> ((MainActivity) requireActivity()).openCategoryManage());
+    View toolRecycleBin = view.findViewById(R.id.toolRecycleBin);
+    toolRecycleBin.setOnClickListener(v -> ((MainActivity) requireActivity()).openRecycleBin());
+    View toolExport = view.findViewById(R.id.toolExport);
+    toolExport.setOnClickListener(v -> ((MainActivity) requireActivity()).openExport());
+    View toolAccountManage = view.findViewById(R.id.toolAccountManage);
+    toolAccountManage.setOnClickListener(v -> ((MainActivity) requireActivity()).openAccountManage());
+    View toolCategoryManage = view.findViewById(R.id.toolCategoryManage);
+    toolCategoryManage.setOnClickListener(v -> ((MainActivity) requireActivity()).openCategoryManage());
     loadBudgetConfig();
     refreshAccountBalances();
   }

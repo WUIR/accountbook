@@ -73,34 +73,6 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnRecycleBin"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="10dp"
-            android:text="回收站" />
-
-        <Button
-            android:id="@+id/btnExport"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="10dp"
-            android:text="导出账单" />
-
-        <Button
-            android:id="@+id/btnAccountManage"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="10dp"
-            android:text="账户管理" />
-
-        <Button
-            android:id="@+id/btnCategoryManage"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="10dp"
-            android:text="分类管理" />
-
         <LinearLayout
             android:id="@+id/accountListContainer"
             android:layout_width="match_parent"
@@ -111,5 +83,168 @@
             android:orientation="vertical"
             android:padding="18dp"
             tools:ignore="UselessParent" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="@string/mine_tools"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/toolRecycleBin"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="14dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/recycle_bin"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/recycle_bin_desc"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/toolExport"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="14dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/export_bill"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/export_bill_desc"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/toolAccountManage"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="14dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/account_manage"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/account_manage_desc"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/toolCategoryManage"
+                    android:layout_width="0dp"
+                    android:layout_height="72dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="14dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/category_manage"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:text="@string/category_manage_desc"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

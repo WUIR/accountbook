@@ -45,5 +45,14 @@
     <string name="error_budget_invalid">预算金额格式不正确</string>
     <string name="error_budget_negative">预算金额不能为负数</string>
     <string name="account_balance">账户余额</string>
+    <string name="mine_tools">工具</string>
+    <string name="recycle_bin">回收站</string>
+    <string name="recycle_bin_desc">恢复或彻底删除账单</string>
+    <string name="export_bill">导出账单</string>
+    <string name="export_bill_desc">导出本月 CSV / PDF</string>
+    <string name="account_manage">账户管理</string>
+    <string name="account_manage_desc">维护账户和停用状态</string>
+    <string name="category_manage">分类管理</string>
+    <string name="category_manage_desc">维护收入和支出分类</string>
     <string name="account_waiting_init">账户数据将在数据库初始化后展示</string>
 </resources>
