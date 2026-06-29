@@ -9,7 +9,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -111,11 +110,11 @@ public class AddBillFragment extends Fragment {
     tvDate = view.findViewById(R.id.tvDate);
     tvVoucherStatus = view.findViewById(R.id.tvVoucherStatus);
     etRemark = view.findViewById(R.id.etRemark);
-    Button btnSelectVoucher = view.findViewById(R.id.btnSelectVoucher);
+    View btnSelectVoucher = view.findViewById(R.id.btnSelectVoucher);
     btnSelectVoucher.setOnClickListener(v -> openVoucherPicker());
-    Button btnRemoveVoucher = view.findViewById(R.id.btnRemoveVoucher);
+    View btnRemoveVoucher = view.findViewById(R.id.btnRemoveVoucher);
     btnRemoveVoucher.setOnClickListener(v -> removeSelectedVoucher());
-    Button btnSaveBill = view.findViewById(R.id.btnSaveBill);
+    View btnSaveBill = view.findViewById(R.id.btnSaveBill);
     btnSaveBill.setOnClickListener(v -> saveBillRecord());
   }
 
