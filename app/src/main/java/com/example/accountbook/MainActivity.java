@@ -1,9 +1,15 @@
 package com.example.accountbook;
 
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.accountbook.db.AccountBookDbHelper;
@@ -42,11 +48,51 @@ public class MainActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+    setupSystemBars();
     new AccountBookDbHelper(this).getWritableDatabase();
     setupBottomNavigation();
     if (savedInstanceState == null) {
       switchToFragment(TAG_HOME);
     }
+  }
+
+  private void setupSystemBars() {
+    Window window = getWindow();
+    window.setStatusBarColor(getColor(R.color.app_background));
+    window.setNavigationBarColor(getColor(R.color.surface));
+
+    View rootView = findViewById(R.id.main);
+    View fragmentContainer = findViewById(R.id.fragmentContainer);
+    View bottomNavigation = findViewById(R.id.bottomNavigation);
+    WindowInsetsControllerCompat controller =
+        new WindowInsetsControllerCompat(window, rootView);
+    controller.setAppearanceLightStatusBars(true);
+    controller.setAppearanceLightNavigationBars(true);
+
+    int fragmentLeft = fragmentContainer.getPaddingLeft();
+    int fragmentTop = fragmentContainer.getPaddingTop();
+    int fragmentRight = fragmentContainer.getPaddingRight();
+    int fragmentBottom = fragmentContainer.getPaddingBottom();
+    int navLeft = bottomNavigation.getPaddingLeft();
+    int navTop = bottomNavigation.getPaddingTop();
+    int navRight = bottomNavigation.getPaddingRight();
+    int navBottom = bottomNavigation.getPaddingBottom();
+
+    ViewCompat.setOnApplyWindowInsetsListener(rootView, (view, windowInsets) -> {
+      Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      fragmentContainer.setPadding(
+          fragmentLeft,
+          fragmentTop + systemBars.top,
+          fragmentRight,
+          fragmentBottom);
+      bottomNavigation.setPadding(
+          navLeft,
+          navTop,
+          navRight,
+          navBottom + systemBars.bottom);
+      return windowInsets;
+    });
+    ViewCompat.requestApplyInsets(rootView);
   }
 
   private void setupBottomNavigation() {
