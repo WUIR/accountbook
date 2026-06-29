@@ -47,6 +47,7 @@ public class BillRecordDao {
         + AccountBookDbHelper.COLUMN_CATEGORY_ID + " = c." + AccountBookDbHelper.COLUMN_ID + " "
         + "LEFT JOIN " + AccountBookDbHelper.TABLE_ACCOUNT + " a ON br."
         + AccountBookDbHelper.COLUMN_ACCOUNT_ID + " = a." + AccountBookDbHelper.COLUMN_ID + " "
+        + "WHERE br." + AccountBookDbHelper.COLUMN_DELETED_AT + " = 0 "
         + "ORDER BY br." + AccountBookDbHelper.COLUMN_RECORD_DATE + " DESC, br."
         + AccountBookDbHelper.COLUMN_CREATE_TIME + " DESC LIMIT ?";
     try (Cursor cursor = db.rawQuery(sql, new String[] {String.valueOf(limit)})) {
@@ -63,7 +64,8 @@ public class BillRecordDao {
         + AccountBookDbHelper.TABLE_BILL_RECORD
         + " WHERE " + AccountBookDbHelper.COLUMN_TYPE + " = ? AND "
         + AccountBookDbHelper.COLUMN_RECORD_DATE + " >= ? AND "
-        + AccountBookDbHelper.COLUMN_RECORD_DATE + " < ?";
+        + AccountBookDbHelper.COLUMN_RECORD_DATE + " < ? AND "
+        + AccountBookDbHelper.COLUMN_DELETED_AT + " = 0";
     try (Cursor cursor = db.rawQuery(sql, new String[] {type, monthStart, monthEnd})) {
       if (cursor.moveToFirst()) {
         return cursor.isNull(0) ? 0 : cursor.getDouble(0);
@@ -100,6 +102,8 @@ public class BillRecordDao {
         cursor.getString(cursor.getColumnIndexOrThrow(AccountBookDbHelper.COLUMN_REMARK)));
     record.setCreateTime(
         cursor.getLong(cursor.getColumnIndexOrThrow(AccountBookDbHelper.COLUMN_CREATE_TIME)));
+    record.setDeletedAt(
+        cursor.getLong(cursor.getColumnIndexOrThrow(AccountBookDbHelper.COLUMN_DELETED_AT)));
     record.setCategoryName(cursor.getString(cursor.getColumnIndexOrThrow("category_name")));
     record.setAccountName(cursor.getString(cursor.getColumnIndexOrThrow("account_name")));
     return record;

@@ -15,6 +15,7 @@ public class BillRecord {
   private String recordDate;
   private String remark;
   private long createTime;
+  private long deletedAt;
 
   public long getId() {
     return id;
@@ -94,5 +95,13 @@ public class BillRecord {
 
   public void setCreateTime(long createTime) {
     this.createTime = createTime;
+  }
+
+  public long getDeletedAt() {
+    return deletedAt;
+  }
+
+  public void setDeletedAt(long deletedAt) {
+    this.deletedAt = deletedAt;
   }
 }

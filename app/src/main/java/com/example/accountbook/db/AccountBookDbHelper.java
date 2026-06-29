@@ -11,7 +11,7 @@ import com.example.accountbook.model.BillRecord;
 public class AccountBookDbHelper extends SQLiteOpenHelper {
 
   public static final String DATABASE_NAME = "account_book.db";
-  public static final int DATABASE_VERSION = 1;
+  public static final int DATABASE_VERSION = 2;
 
   public static final String TABLE_BILL_RECORD = "bill_record";
   public static final String TABLE_CATEGORY = "category";
@@ -25,6 +25,7 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
   public static final String COLUMN_RECORD_DATE = "record_date";
   public static final String COLUMN_REMARK = "remark";
   public static final String COLUMN_CREATE_TIME = "create_time";
+  public static final String COLUMN_DELETED_AT = "deleted_at";
   public static final String COLUMN_NAME = "name";
   public static final String COLUMN_SORT_ORDER = "sort_order";
   public static final String COLUMN_ACCOUNT_TYPE = "account_type";
@@ -44,7 +45,8 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
         + COLUMN_ACCOUNT_ID + " INTEGER NOT NULL, "
         + COLUMN_RECORD_DATE + " TEXT NOT NULL, "
         + COLUMN_REMARK + " TEXT, "
-        + COLUMN_CREATE_TIME + " INTEGER NOT NULL"
+        + COLUMN_CREATE_TIME + " INTEGER NOT NULL, "
+        + COLUMN_DELETED_AT + " INTEGER NOT NULL DEFAULT 0"
         + ")");
     db.execSQL("CREATE TABLE " + TABLE_CATEGORY + " ("
         + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -64,10 +66,10 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
 
   @Override
   public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-    db.execSQL("DROP TABLE IF EXISTS " + TABLE_BILL_RECORD);
-    db.execSQL("DROP TABLE IF EXISTS " + TABLE_CATEGORY);
-    db.execSQL("DROP TABLE IF EXISTS " + TABLE_ACCOUNT);
-    onCreate(db);
+    if (oldVersion < 2) {
+      db.execSQL("ALTER TABLE " + TABLE_BILL_RECORD
+          + " ADD COLUMN " + COLUMN_DELETED_AT + " INTEGER NOT NULL DEFAULT 0");
+    }
   }
 
   private void insertDefaultCategories(SQLiteDatabase db) {
