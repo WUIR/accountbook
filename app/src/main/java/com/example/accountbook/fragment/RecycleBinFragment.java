@@ -22,6 +22,7 @@ import com.example.accountbook.db.BillRecordDao;
 import com.example.accountbook.model.BillRecord;
 import com.example.accountbook.util.DateUtils;
 import com.example.accountbook.util.MoneyUtils;
+import com.example.accountbook.util.VoucherFileUtils;
 
 import java.util.List;
 
@@ -59,8 +60,9 @@ public class RecycleBinFragment extends Fragment {
   }
 
   private void refreshList() {
-    billRecordDao.cleanupExpiredRecycleBinRecords(DateUtils.getEarliestRecycleDeletedAt());
-    List<BillRecord> records = billRecordDao.getRecycleBinRecords(DateUtils.getEarliestRecycleDeletedAt());
+    long earliestDeletedAt = DateUtils.getEarliestRecycleDeletedAt();
+    cleanupExpiredRecords(earliestDeletedAt);
+    List<BillRecord> records = billRecordDao.getRecycleBinRecords(earliestDeletedAt);
     listContainer.removeAllViews();
     if (records.isEmpty()) {
       TextView empty = createText("回收站暂无账单", 15, R.color.text_secondary);
@@ -106,12 +108,26 @@ public class RecycleBinFragment extends Fragment {
         .setTitle("彻底删除")
         .setMessage("彻底删除后不可恢复，确认删除？")
         .setPositiveButton("删除", (dialog, which) -> {
+          BillRecord record = billRecordDao.getBillRecordById(billId, true);
           boolean success = billRecordDao.permanentlyDelete(billId);
+          if (success && record != null) {
+            VoucherFileUtils.deleteVoucherFile(requireContext(), record.getImagePath());
+          }
           Toast.makeText(requireContext(), success ? "已彻底删除" : "删除失败", Toast.LENGTH_SHORT).show();
           refreshList();
         })
         .setNegativeButton("取消", null)
         .show();
+  }
+
+  private void cleanupExpiredRecords(long earliestDeletedAt) {
+    List<BillRecord> expiredRecords = billRecordDao.getExpiredRecycleBinRecords(earliestDeletedAt);
+    int deletedCount = billRecordDao.cleanupExpiredRecycleBinRecords(earliestDeletedAt);
+    if (deletedCount > 0) {
+      for (BillRecord record : expiredRecords) {
+        VoucherFileUtils.deleteVoucherFile(requireContext(), record.getImagePath());
+      }
+    }
   }
 
   private LinearLayout createTitleRow() {

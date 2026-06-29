@@ -11,7 +11,7 @@ import com.example.accountbook.model.BillRecord;
 public class AccountBookDbHelper extends SQLiteOpenHelper {
 
   public static final String DATABASE_NAME = "account_book.db";
-  public static final int DATABASE_VERSION = 2;
+  public static final int DATABASE_VERSION = 3;
 
   public static final String TABLE_BILL_RECORD = "bill_record";
   public static final String TABLE_CATEGORY = "category";
@@ -26,10 +26,12 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
   public static final String COLUMN_REMARK = "remark";
   public static final String COLUMN_CREATE_TIME = "create_time";
   public static final String COLUMN_DELETED_AT = "deleted_at";
+  public static final String COLUMN_IMAGE_PATH = "image_path";
   public static final String COLUMN_NAME = "name";
   public static final String COLUMN_SORT_ORDER = "sort_order";
   public static final String COLUMN_ACCOUNT_TYPE = "account_type";
   public static final String COLUMN_BALANCE = "balance";
+  public static final String COLUMN_IS_ACTIVE = "is_active";
 
   public AccountBookDbHelper(Context context) {
     super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -46,19 +48,22 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
         + COLUMN_RECORD_DATE + " TEXT NOT NULL, "
         + COLUMN_REMARK + " TEXT, "
         + COLUMN_CREATE_TIME + " INTEGER NOT NULL, "
-        + COLUMN_DELETED_AT + " INTEGER NOT NULL DEFAULT 0"
+        + COLUMN_DELETED_AT + " INTEGER NOT NULL DEFAULT 0, "
+        + COLUMN_IMAGE_PATH + " TEXT"
         + ")");
     db.execSQL("CREATE TABLE " + TABLE_CATEGORY + " ("
         + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
         + COLUMN_NAME + " TEXT NOT NULL, "
         + COLUMN_TYPE + " TEXT NOT NULL, "
-        + COLUMN_SORT_ORDER + " INTEGER NOT NULL"
+        + COLUMN_SORT_ORDER + " INTEGER NOT NULL, "
+        + COLUMN_IS_ACTIVE + " INTEGER NOT NULL DEFAULT 1"
         + ")");
     db.execSQL("CREATE TABLE " + TABLE_ACCOUNT + " ("
         + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
         + COLUMN_NAME + " TEXT NOT NULL, "
         + COLUMN_ACCOUNT_TYPE + " TEXT NOT NULL, "
-        + COLUMN_BALANCE + " REAL NOT NULL DEFAULT 0"
+        + COLUMN_BALANCE + " REAL NOT NULL DEFAULT 0, "
+        + COLUMN_IS_ACTIVE + " INTEGER NOT NULL DEFAULT 1"
         + ")");
     insertDefaultCategories(db);
     insertDefaultAccounts(db);
@@ -69,6 +74,14 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
     if (oldVersion < 2) {
       db.execSQL("ALTER TABLE " + TABLE_BILL_RECORD
           + " ADD COLUMN " + COLUMN_DELETED_AT + " INTEGER NOT NULL DEFAULT 0");
+    }
+    if (oldVersion < 3) {
+      db.execSQL("ALTER TABLE " + TABLE_BILL_RECORD
+          + " ADD COLUMN " + COLUMN_IMAGE_PATH + " TEXT");
+      db.execSQL("ALTER TABLE " + TABLE_ACCOUNT
+          + " ADD COLUMN " + COLUMN_IS_ACTIVE + " INTEGER NOT NULL DEFAULT 1");
+      db.execSQL("ALTER TABLE " + TABLE_CATEGORY
+          + " ADD COLUMN " + COLUMN_IS_ACTIVE + " INTEGER NOT NULL DEFAULT 1");
     }
   }
 
@@ -91,6 +104,7 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
     values.put(COLUMN_NAME, name);
     values.put(COLUMN_TYPE, type);
     values.put(COLUMN_SORT_ORDER, sortOrder);
+    values.put(COLUMN_IS_ACTIVE, 1);
     db.insert(TABLE_CATEGORY, null, values);
   }
 
@@ -105,6 +119,7 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
     values.put(COLUMN_NAME, name);
     values.put(COLUMN_ACCOUNT_TYPE, accountType);
     values.put(COLUMN_BALANCE, 0);
+    values.put(COLUMN_IS_ACTIVE, 1);
     db.insert(TABLE_ACCOUNT, null, values);
   }
 }

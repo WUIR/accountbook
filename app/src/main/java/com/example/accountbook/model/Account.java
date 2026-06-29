@@ -5,11 +5,14 @@ public class Account {
   public static final String TYPE_CASH = "cash";
   public static final String TYPE_BANK_CARD = "bank_card";
   public static final String TYPE_CREDIT_CARD = "credit_card";
+  public static final String TYPE_THIRD_PARTY = "third_party";
+  public static final String TYPE_OTHER = "other";
 
   private long id;
   private String name;
   private String accountType;
   private double balance;
+  private boolean active = true;
 
   public long getId() {
     return id;
@@ -41,5 +44,13 @@ public class Account {
 
   public void setBalance(double balance) {
     this.balance = balance;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
   }
 }

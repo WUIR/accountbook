@@ -212,6 +212,23 @@ public class BillRecordDao {
     return rows == 1;
   }
 
+  public boolean hasRecordsByAccountId(long accountId) {
+    return hasRecordsByColumn(AccountBookDbHelper.COLUMN_ACCOUNT_ID, accountId);
+  }
+
+  public boolean hasRecordsByCategoryId(long categoryId) {
+    return hasRecordsByColumn(AccountBookDbHelper.COLUMN_CATEGORY_ID, categoryId);
+  }
+
+  public List<BillRecord> getNormalBillRecordsByDateRange(
+      String startDateInclusive,
+      String endDateExclusive) {
+    BillFilter filter = new BillFilter();
+    filter.setStartDateInclusive(startDateInclusive);
+    filter.setEndDateExclusive(endDateExclusive);
+    return getBillRecordsByFilter(filter);
+  }
+
   public int cleanupExpiredRecycleBinRecords(long expiredBefore) {
     SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.delete(
@@ -228,6 +245,21 @@ public class BillRecordDao {
         + "ORDER BY br." + AccountBookDbHelper.COLUMN_DELETED_AT + " DESC";
     SQLiteDatabase db = dbHelper.getReadableDatabase();
     try (Cursor cursor = db.rawQuery(sql, new String[] {String.valueOf(earliestDeletedAt)})) {
+      while (cursor.moveToNext()) {
+        records.add(readBillRecord(cursor));
+      }
+    }
+    return records;
+  }
+
+  public List<BillRecord> getExpiredRecycleBinRecords(long expiredBefore) {
+    List<BillRecord> records = new ArrayList<>();
+    String sql = baseSelectSql()
+        + "WHERE br." + AccountBookDbHelper.COLUMN_DELETED_AT + " > 0 AND br."
+        + AccountBookDbHelper.COLUMN_DELETED_AT + " < ? "
+        + "ORDER BY br." + AccountBookDbHelper.COLUMN_DELETED_AT + " DESC";
+    SQLiteDatabase db = dbHelper.getReadableDatabase();
+    try (Cursor cursor = db.rawQuery(sql, new String[] {String.valueOf(expiredBefore)})) {
       while (cursor.moveToNext()) {
         records.add(readBillRecord(cursor));
       }
@@ -333,6 +365,7 @@ public class BillRecordDao {
     values.put(AccountBookDbHelper.COLUMN_REMARK, record.getRemark());
     values.put(AccountBookDbHelper.COLUMN_CREATE_TIME, record.getCreateTime());
     values.put(AccountBookDbHelper.COLUMN_DELETED_AT, record.getDeletedAt());
+    values.put(AccountBookDbHelper.COLUMN_IMAGE_PATH, record.getImagePath());
     return values;
   }
 
@@ -354,8 +387,27 @@ public class BillRecordDao {
         cursor.getLong(cursor.getColumnIndexOrThrow(AccountBookDbHelper.COLUMN_CREATE_TIME)));
     record.setDeletedAt(
         cursor.getLong(cursor.getColumnIndexOrThrow(AccountBookDbHelper.COLUMN_DELETED_AT)));
+    int imagePathIndex = cursor.getColumnIndex(AccountBookDbHelper.COLUMN_IMAGE_PATH);
+    if (imagePathIndex >= 0) {
+      record.setImagePath(cursor.getString(imagePathIndex));
+    }
     record.setCategoryName(cursor.getString(cursor.getColumnIndexOrThrow("category_name")));
     record.setAccountName(cursor.getString(cursor.getColumnIndexOrThrow("account_name")));
     return record;
+  }
+
+  private boolean hasRecordsByColumn(String columnName, long id) {
+    SQLiteDatabase db = dbHelper.getReadableDatabase();
+    try (Cursor cursor = db.query(
+        AccountBookDbHelper.TABLE_BILL_RECORD,
+        new String[] {AccountBookDbHelper.COLUMN_ID},
+        columnName + " = ?",
+        new String[] {String.valueOf(id)},
+        null,
+        null,
+        null,
+        "1")) {
+      return cursor.moveToFirst();
+    }
   }
 }

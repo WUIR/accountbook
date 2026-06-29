@@ -1,6 +1,9 @@
 package com.example.accountbook.fragment;
 
 import android.app.DatePickerDialog;
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -20,6 +23,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 
 import com.example.accountbook.MainActivity;
@@ -30,6 +35,9 @@ import com.example.accountbook.db.CategoryDao;
 import com.example.accountbook.model.Account;
 import com.example.accountbook.model.BillRecord;
 import com.example.accountbook.model.Category;
+import com.example.accountbook.util.VoucherFileUtils;
+
+import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -52,8 +60,11 @@ public class EditBillFragment extends Fragment {
   private Spinner spCategory;
   private Spinner spAccount;
   private TextView tvDate;
+  private TextView tvVoucherStatus;
   private EditText etRemark;
   private String selectedDate;
+  private String selectedImagePath;
+  private ActivityResultLauncher<Intent> voucherPickerLauncher;
   private List<Category> categories = new ArrayList<>();
   private List<Account> accounts = new ArrayList<>();
 
@@ -63,6 +74,21 @@ public class EditBillFragment extends Fragment {
     args.putLong(ARG_BILL_ID, billId);
     fragment.setArguments(args);
     return fragment;
+  }
+
+  @Override
+  public void onCreate(@Nullable Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    voucherPickerLauncher = registerForActivityResult(
+        new ActivityResultContracts.StartActivityForResult(),
+        result -> {
+          if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+            Uri uri = result.getData().getData();
+            if (uri != null) {
+              copySelectedVoucher(uri);
+            }
+          }
+        });
   }
 
   @Nullable
@@ -117,6 +143,26 @@ public class EditBillFragment extends Fragment {
     root.addView(etRemark, new LinearLayout.LayoutParams(
         ViewGroup.LayoutParams.MATCH_PARENT, dp(52)));
 
+    tvVoucherStatus = createText("暂无凭证", 14, R.color.text_secondary);
+    tvVoucherStatus.setPadding(0, dp(12), 0, dp(4));
+    root.addView(tvVoucherStatus);
+    LinearLayout voucherActions = new LinearLayout(requireContext());
+    Button btnSelectVoucher = new Button(requireContext());
+    btnSelectVoucher.setText("替换凭证");
+    btnSelectVoucher.setOnClickListener(v -> openVoucherPicker());
+    Button btnRemoveVoucher = new Button(requireContext());
+    btnRemoveVoucher.setText("移除凭证");
+    btnRemoveVoucher.setOnClickListener(v -> removeSelectedVoucher());
+    voucherActions.addView(btnSelectVoucher, new LinearLayout.LayoutParams(
+        0,
+        ViewGroup.LayoutParams.WRAP_CONTENT,
+        1));
+    voucherActions.addView(btnRemoveVoucher, new LinearLayout.LayoutParams(
+        0,
+        ViewGroup.LayoutParams.WRAP_CONTENT,
+        1));
+    root.addView(voucherActions);
+
     Button btnSave = new Button(requireContext());
     btnSave.setText("保存修改");
     btnSave.setOnClickListener(v -> saveEdit());
@@ -149,14 +195,21 @@ public class EditBillFragment extends Fragment {
     }
     etAmount.setText(String.format(Locale.CHINA, "%.2f", sourceRecord.getAmount()));
     selectedDate = sourceRecord.getRecordDate();
+    selectedImagePath = sourceRecord.getImagePath();
     tvDate.setText(selectedDate);
     etRemark.setText(sourceRecord.getRemark());
+    updateVoucherStatus();
     loadCategories(sourceRecord.getType(), sourceRecord.getCategoryId());
     loadAccounts(sourceRecord.getAccountId());
   }
 
   private void loadCategories(String type, long selectedId) {
-    categories = categoryDao.getCategoriesByType(type);
+    categories = categoryDao.getActiveCategoriesByType(type);
+    Category selectedCategory = categoryDao.getCategoryById(selectedId);
+    if (selectedCategory != null && selectedCategory.getType().equals(type)
+        && !containsCategory(selectedCategory.getId())) {
+      categories.add(0, selectedCategory);
+    }
     List<String> names = new ArrayList<>();
     int selectedIndex = 0;
     for (int i = 0; i < categories.size(); i++) {
@@ -174,7 +227,11 @@ public class EditBillFragment extends Fragment {
   }
 
   private void loadAccounts(long selectedId) {
-    accounts = accountDao.getAllAccounts();
+    accounts = accountDao.getActiveAccounts();
+    Account selectedAccount = accountDao.getAccountById(selectedId);
+    if (selectedAccount != null && !containsAccount(selectedAccount.getId())) {
+      accounts.add(0, selectedAccount);
+    }
     List<String> names = new ArrayList<>();
     int selectedIndex = 0;
     for (int i = 0; i < accounts.size(); i++) {
@@ -206,9 +263,13 @@ public class EditBillFragment extends Fragment {
     record.setRemark(etRemark.getText().toString().trim());
     record.setCreateTime(sourceRecord.getCreateTime());
     record.setDeletedAt(0);
+    record.setImagePath(selectedImagePath);
     boolean success = billRecordDao.updateBillRecord(record);
     Toast.makeText(requireContext(), success ? "修改成功" : "修改失败", Toast.LENGTH_SHORT).show();
     if (success) {
+      if (sourceRecord.getImagePath() != null && !sourceRecord.getImagePath().equals(selectedImagePath)) {
+        VoucherFileUtils.deleteVoucherFile(requireContext(), sourceRecord.getImagePath());
+      }
       ((MainActivity) requireActivity()).openBillDetail(billId);
     }
   }
@@ -256,6 +317,55 @@ public class EditBillFragment extends Fragment {
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH))
         .show();
+  }
+
+  private void openVoucherPicker() {
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("image/*");
+    voucherPickerLauncher.launch(intent);
+  }
+
+  private void copySelectedVoucher(Uri uri) {
+    try {
+      if (selectedImagePath != null && !selectedImagePath.equals(sourceRecord.getImagePath())) {
+        VoucherFileUtils.deleteVoucherFile(requireContext(), selectedImagePath);
+      }
+      selectedImagePath = VoucherFileUtils.copyVoucherToPrivateDir(requireContext(), uri);
+      updateVoucherStatus();
+    } catch (IOException e) {
+      Toast.makeText(requireContext(), "凭证复制失败", Toast.LENGTH_SHORT).show();
+    }
+  }
+
+  private void removeSelectedVoucher() {
+    if (selectedImagePath != null && !selectedImagePath.equals(sourceRecord.getImagePath())) {
+      VoucherFileUtils.deleteVoucherFile(requireContext(), selectedImagePath);
+    }
+    selectedImagePath = null;
+    updateVoucherStatus();
+  }
+
+  private void updateVoucherStatus() {
+    tvVoucherStatus.setText(selectedImagePath == null ? "暂无凭证" : "已选择凭证");
+  }
+
+  private boolean containsCategory(long categoryId) {
+    for (Category category : categories) {
+      if (category.getId() == categoryId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean containsAccount(long accountId) {
+    for (Account account : accounts) {
+      if (account.getId() == accountId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private LinearLayout createTitleRow() {

@@ -11,10 +11,13 @@ import com.example.accountbook.fragment.AddBillFragment;
 import com.example.accountbook.fragment.BillDetailFragment;
 import com.example.accountbook.fragment.BillListFragment;
 import com.example.accountbook.fragment.EditBillFragment;
+import com.example.accountbook.fragment.ExportFragment;
 import com.example.accountbook.fragment.HomeFragment;
 import com.example.accountbook.fragment.MineFragment;
 import com.example.accountbook.fragment.RecycleBinFragment;
 import com.example.accountbook.fragment.StatisticsFragment;
+import com.example.accountbook.fragment.AccountManageFragment;
+import com.example.accountbook.fragment.CategoryManageFragment;
 import com.google.android.material.navigation.NavigationBarView;
 
 import android.view.MenuItem;
@@ -29,6 +32,9 @@ public class MainActivity extends AppCompatActivity {
   private static final String TAG_EDIT_BILL = "edit_bill";
   private static final String TAG_STATISTICS = "statistics";
   private static final String TAG_RECYCLE_BIN = "recycle_bin";
+  private static final String TAG_EXPORT = "export";
+  private static final String TAG_ACCOUNT_MANAGE = "account_manage";
+  private static final String TAG_CATEGORY_MANAGE = "category_manage";
 
   private String currentTag = TAG_HOME;
 
@@ -90,6 +96,18 @@ public class MainActivity extends AppCompatActivity {
     switchToFragment(TAG_RECYCLE_BIN);
   }
 
+  public void openExport() {
+    switchToFragment(TAG_EXPORT);
+  }
+
+  public void openAccountManage() {
+    switchToFragment(TAG_ACCOUNT_MANAGE);
+  }
+
+  public void openCategoryManage() {
+    switchToFragment(TAG_CATEGORY_MANAGE);
+  }
+
   public void openBillDetail(long billId) {
     currentTag = TAG_BILL_DETAIL;
     getSupportFragmentManager()
@@ -129,6 +147,12 @@ public class MainActivity extends AppCompatActivity {
       return new StatisticsFragment();
     } else if (TAG_RECYCLE_BIN.equals(tag)) {
       return new RecycleBinFragment();
+    } else if (TAG_EXPORT.equals(tag)) {
+      return new ExportFragment();
+    } else if (TAG_ACCOUNT_MANAGE.equals(tag)) {
+      return new AccountManageFragment();
+    } else if (TAG_CATEGORY_MANAGE.equals(tag)) {
+      return new CategoryManageFragment();
     }
     return new HomeFragment();
   }

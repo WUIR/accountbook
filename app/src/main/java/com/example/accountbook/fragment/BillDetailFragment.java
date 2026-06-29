@@ -1,11 +1,13 @@
 package com.example.accountbook.fragment;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -21,6 +23,10 @@ import com.example.accountbook.R;
 import com.example.accountbook.db.BillRecordDao;
 import com.example.accountbook.model.BillRecord;
 import com.example.accountbook.util.MoneyUtils;
+import com.example.accountbook.util.VoucherFileUtils;
+import com.bumptech.glide.Glide;
+
+import java.io.File;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -88,6 +94,7 @@ public class BillDetailFragment extends Fragment {
     panel.addView(createField("日期", record.getRecordDate()));
     panel.addView(createField("备注", record.getRemark() == null || record.getRemark().isEmpty() ? "无" : record.getRemark()));
     panel.addView(createField("创建时间", formatTime(record.getCreateTime())));
+    panel.addView(createVoucherView(record));
 
     Button btnEdit = new Button(requireContext());
     btnEdit.setText("编辑账单");
@@ -130,6 +137,34 @@ public class BillDetailFragment extends Fragment {
 
   private TextView createField(String label, String value) {
     return createText(label + "：" + (value == null ? "" : value), 16, R.color.text_primary);
+  }
+
+  private View createVoucherView(BillRecord record) {
+    LinearLayout container = new LinearLayout(requireContext());
+    container.setOrientation(LinearLayout.VERTICAL);
+    container.setPadding(0, dp(10), 0, 0);
+    TextView title = createText("凭证：", 16, R.color.text_primary);
+    container.addView(title);
+    if (TextUtils.isEmpty(record.getImagePath())) {
+      container.addView(createText("暂无凭证", 14, R.color.text_secondary));
+      return container;
+    }
+    if (!VoucherFileUtils.voucherExists(record.getImagePath())) {
+      container.addView(createText("凭证图片不存在或已无法读取", 14, R.color.text_secondary));
+      return container;
+    }
+    ImageView imageView = new ImageView(requireContext());
+    imageView.setAdjustViewBounds(true);
+    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        dp(180));
+    params.setMargins(0, dp(8), 0, 0);
+    container.addView(imageView, params);
+    Glide.with(this)
+        .load(new File(record.getImagePath()))
+        .into(imageView);
+    return container;
   }
 
   private TextView createText(String text, int sp, int colorRes) {

@@ -16,6 +16,7 @@ public class BillRecord {
   private String remark;
   private long createTime;
   private long deletedAt;
+  private String imagePath;
 
   public long getId() {
     return id;
@@ -103,5 +104,13 @@ public class BillRecord {
 
   public void setDeletedAt(long deletedAt) {
     this.deletedAt = deletedAt;
+  }
+
+  public String getImagePath() {
+    return imagePath;
+  }
+
+  public void setImagePath(String imagePath) {
+    this.imagePath = imagePath;
   }
 }

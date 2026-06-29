@@ -80,6 +80,27 @@
             android:layout_marginTop="10dp"
             android:text="回收站" />
 
+        <Button
+            android:id="@+id/btnExport"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:text="导出账单" />
+
+        <Button
+            android:id="@+id/btnAccountManage"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:text="账户管理" />
+
+        <Button
+            android:id="@+id/btnCategoryManage"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:text="分类管理" />
+
         <LinearLayout
             android:id="@+id/accountListContainer"
             android:layout_width="match_parent"

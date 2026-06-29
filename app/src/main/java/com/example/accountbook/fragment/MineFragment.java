@@ -52,6 +52,12 @@ public class MineFragment extends Fragment {
     btnSaveBudget.setOnClickListener(v -> saveBudgetConfig());
     Button btnRecycleBin = view.findViewById(R.id.btnRecycleBin);
     btnRecycleBin.setOnClickListener(v -> ((MainActivity) requireActivity()).openRecycleBin());
+    Button btnExport = view.findViewById(R.id.btnExport);
+    btnExport.setOnClickListener(v -> ((MainActivity) requireActivity()).openExport());
+    Button btnAccountManage = view.findViewById(R.id.btnAccountManage);
+    btnAccountManage.setOnClickListener(v -> ((MainActivity) requireActivity()).openAccountManage());
+    Button btnCategoryManage = view.findViewById(R.id.btnCategoryManage);
+    btnCategoryManage.setOnClickListener(v -> ((MainActivity) requireActivity()).openCategoryManage());
     loadBudgetConfig();
     refreshAccountBalances();
   }

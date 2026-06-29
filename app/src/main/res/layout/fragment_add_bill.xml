@@ -104,6 +104,37 @@
             android:textColor="@color/text_primary"
             android:textColorHint="@color/text_hint" />
 
+        <TextView
+            android:id="@+id/tvVoucherStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="暂无凭证"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnSelectVoucher"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="选择凭证" />
+
+            <Button
+                android:id="@+id/btnRemoveVoucher"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:text="移除凭证" />
+        </LinearLayout>
+
         <Button
             android:id="@+id/btnSaveBill"
             android:layout_width="match_parent"

@@ -6,6 +6,7 @@ public class Category {
   private String name;
   private String type;
   private int sortOrder;
+  private boolean active = true;
 
   public long getId() {
     return id;
@@ -37,5 +38,13 @@ public class Category {
 
   public void setSortOrder(int sortOrder) {
     this.sortOrder = sortOrder;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
   }
 }
