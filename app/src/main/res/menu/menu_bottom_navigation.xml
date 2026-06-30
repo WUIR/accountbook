@@ -9,6 +9,10 @@
         android:icon="@drawable/ic_add_bill"
         android:title="@string/add_bill" />
     <item
+        android:id="@+id/nav_statistics"
+        android:icon="@drawable/ic_statistics"
+        android:title="@string/statistics" />
+    <item
         android:id="@+id/nav_mine"
         android:icon="@drawable/ic_mine"
         android:title="@string/mine" />

@@ -33,11 +33,11 @@ public class MainActivity extends AppCompatActivity {
 
   private static final String TAG_HOME = "home";
   private static final String TAG_ADD_BILL = "add_bill";
+  private static final String TAG_STATISTICS = "statistics";
   private static final String TAG_MINE = "mine";
   private static final String TAG_BILL_LIST = "bill_list";
   private static final String TAG_BILL_DETAIL = "bill_detail";
   private static final String TAG_EDIT_BILL = "edit_bill";
-  private static final String TAG_STATISTICS = "statistics";
   private static final String TAG_RECYCLE_BIN = "recycle_bin";
   private static final String TAG_EXPORT = "export";
   private static final String TAG_ACCOUNT_MANAGE = "account_manage";
@@ -105,19 +105,30 @@ public class MainActivity extends AppCompatActivity {
   private boolean onNavigationItemSelected(@NonNull MenuItem item) {
     int itemId = item.getItemId();
     if (itemId == R.id.nav_home) {
-      switchToFragment(TAG_HOME);
+      switchToFragmentFromNavigation(TAG_HOME);
       return true;
     } else if (itemId == R.id.nav_add_bill) {
-      switchToFragment(TAG_ADD_BILL);
+      switchToFragmentFromNavigation(TAG_ADD_BILL);
+      return true;
+    } else if (itemId == R.id.nav_statistics) {
+      switchToFragmentFromNavigation(TAG_STATISTICS);
       return true;
     } else if (itemId == R.id.nav_mine) {
-      switchToFragment(TAG_MINE);
+      switchToFragmentFromNavigation(TAG_MINE);
       return true;
     }
     return false;
   }
 
   private void switchToFragment(String tag) {
+    switchToFragment(tag, true);
+  }
+
+  private void switchToFragmentFromNavigation(String tag) {
+    switchToFragment(tag, false);
+  }
+
+  private void switchToFragment(String tag, boolean syncBottomNavigation) {
     if (tag.equals(currentTag) && getSupportFragmentManager().findFragmentByTag(tag) != null) {
       return;
     }
@@ -130,6 +141,24 @@ public class MainActivity extends AppCompatActivity {
         .beginTransaction()
         .replace(R.id.fragmentContainer, fragment, tag)
         .commit();
+    if (syncBottomNavigation) {
+      syncBottomNavigation(tag);
+    }
+  }
+
+  private void syncBottomNavigation(String tag) {
+    NavigationBarView bottomNavigation = findViewById(R.id.bottomNavigation);
+    if (TAG_HOME.equals(tag) && bottomNavigation.getSelectedItemId() != R.id.nav_home) {
+      bottomNavigation.setSelectedItemId(R.id.nav_home);
+    } else if (TAG_ADD_BILL.equals(tag)
+        && bottomNavigation.getSelectedItemId() != R.id.nav_add_bill) {
+      bottomNavigation.setSelectedItemId(R.id.nav_add_bill);
+    } else if (TAG_STATISTICS.equals(tag)
+        && bottomNavigation.getSelectedItemId() != R.id.nav_statistics) {
+      bottomNavigation.setSelectedItemId(R.id.nav_statistics);
+    } else if (TAG_MINE.equals(tag) && bottomNavigation.getSelectedItemId() != R.id.nav_mine) {
+      bottomNavigation.setSelectedItemId(R.id.nav_mine);
+    }
   }
 
   public void openBillList() {

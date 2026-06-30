@@ -10,11 +10,15 @@ import com.example.accountbook.model.BillFilter;
 import com.example.accountbook.model.BillRecord;
 import com.example.accountbook.model.CategorySummary;
 import com.example.accountbook.model.SummaryResult;
+import com.example.accountbook.model.TrendItem;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class BillRecordDao {
+
+  public static final String TREND_GROUP_DAY = "day";
+  public static final String TREND_GROUP_MONTH = "month";
 
   private final AccountBookDbHelper dbHelper;
   private final AccountDao accountDao;
@@ -324,6 +328,36 @@ public class BillRecordDao {
       }
     }
     return summaries;
+  }
+
+  public List<TrendItem> getExpenseTrend(
+      String startDateInclusive,
+      String endDateExclusive,
+      String groupMode) {
+    List<TrendItem> items = new ArrayList<>();
+    String groupExpression = TREND_GROUP_MONTH.equals(groupMode)
+        ? "substr(" + AccountBookDbHelper.COLUMN_RECORD_DATE + ", 1, 7)"
+        : AccountBookDbHelper.COLUMN_RECORD_DATE;
+    String sql = "SELECT " + groupExpression + " AS trend_label, "
+        + "SUM(" + AccountBookDbHelper.COLUMN_AMOUNT + ") AS total_amount "
+        + "FROM " + AccountBookDbHelper.TABLE_BILL_RECORD + " "
+        + "WHERE " + AccountBookDbHelper.COLUMN_TYPE + " = ? AND "
+        + AccountBookDbHelper.COLUMN_RECORD_DATE + " >= ? AND "
+        + AccountBookDbHelper.COLUMN_RECORD_DATE + " < ? AND "
+        + AccountBookDbHelper.COLUMN_DELETED_AT + " = 0 "
+        + "GROUP BY trend_label "
+        + "ORDER BY trend_label ASC";
+    SQLiteDatabase db = dbHelper.getReadableDatabase();
+    try (Cursor cursor = db.rawQuery(
+        sql,
+        new String[] {BillRecord.TYPE_EXPENSE, startDateInclusive, endDateExclusive})) {
+      while (cursor.moveToNext()) {
+        String label = cursor.getString(cursor.getColumnIndexOrThrow("trend_label"));
+        double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("total_amount"));
+        items.add(new TrendItem(label, amount));
+      }
+    }
+    return items;
   }
 
   private BillRecord getBillRecordById(SQLiteDatabase db, long id, boolean includeDeleted) {
