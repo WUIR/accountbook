@@ -1,6 +1,10 @@
 package com.example.accountbook.fragment;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.graphics.Typeface;
 import android.view.Gravity;
@@ -20,12 +24,32 @@ import com.example.accountbook.db.BillRecordDao;
 import com.example.accountbook.model.BillRecord;
 import com.example.accountbook.util.PreferenceUtils;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HomeFragment extends Fragment {
 
+  private static final String HITOKOTO_URL = "https://v1.hitokoto.cn/?encode=json&max_length=24";
+  private static final int HITOKOTO_MAX_LENGTH = 24;
+  private static final int HITOKOTO_TIMEOUT_MS = 3000;
+  private static final long HITOKOTO_FIRST_REQUEST_DELAY_MS = 3000L;
+  private static final long HITOKOTO_REFRESH_INTERVAL_MS = 10_000L;
+  private static final long HITOKOTO_VISIBLE_BEFORE_SCROLL_MS = 1200L;
+  private static final long HITOKOTO_SCROLL_DURATION_MS = 7000L;
+
+  private TextView tvHomeSubtitle;
   private TextView tvMonthlyBalance;
   private TextView tvMonthlyBalanceLabel;
   private TextView tvMonthlyIncome;
@@ -34,6 +58,17 @@ public class HomeFragment extends Fragment {
   private TextView tvMonthlyExpenseLabel;
   private LinearLayout recentBillsContainer;
   private BillRecordDao billRecordDao;
+  private final Handler mainHandler = new Handler(Looper.getMainLooper());
+  private final ExecutorService hitokotoExecutor = Executors.newSingleThreadExecutor();
+  private final Runnable hitokotoScrollRunnable = this::startHitokotoScrollAnimation;
+  private final Runnable hitokotoRefreshRunnable = () -> {
+    requestHitokoto();
+    scheduleNextHitokotoRequest();
+  };
+  private final AtomicInteger hitokotoRequestVersion = new AtomicInteger();
+  private boolean hitokotoPolling;
+  private boolean hitokotoRequestRunning;
+  private ObjectAnimator hitokotoAnimator;
 
   @Nullable
   @Override
@@ -48,6 +83,9 @@ public class HomeFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     billRecordDao = new BillRecordDao(requireContext());
+    tvHomeSubtitle = view.findViewById(R.id.tvHomeSubtitle);
+    tvHomeSubtitle.setText("");
+    tvHomeSubtitle.setVisibility(View.INVISIBLE);
     tvMonthlyBalance = view.findViewById(R.id.tvMonthlyBalance);
     tvMonthlyBalanceLabel = view.findViewById(R.id.tvMonthlyBalanceLabel);
     tvMonthlyIncome = view.findViewById(R.id.tvMonthlyIncome);
@@ -66,6 +104,29 @@ public class HomeFragment extends Fragment {
     if (billRecordDao != null) {
       refreshHomeData();
     }
+    startHitokotoPolling();
+  }
+
+  @Override
+  public void onPause() {
+    stopHitokotoPolling();
+    super.onPause();
+  }
+
+  @Override
+  public void onDestroyView() {
+    stopHitokotoPolling();
+    if (tvHomeSubtitle != null) {
+      cancelHitokotoAnimation();
+      tvHomeSubtitle = null;
+    }
+    super.onDestroyView();
+  }
+
+  @Override
+  public void onDestroy() {
+    hitokotoExecutor.shutdownNow();
+    super.onDestroy();
   }
 
   private void refreshHomeData() {
@@ -91,6 +152,134 @@ public class HomeFragment extends Fragment {
       tvMonthlyBalance.setText(formatMoney(income - expense));
     }
     refreshRecentBills();
+  }
+
+  private void startHitokotoPolling() {
+    if (hitokotoPolling) {
+      return;
+    }
+    hitokotoPolling = true;
+    mainHandler.postDelayed(hitokotoRefreshRunnable, HITOKOTO_FIRST_REQUEST_DELAY_MS);
+  }
+
+  private void stopHitokotoPolling() {
+    hitokotoPolling = false;
+    mainHandler.removeCallbacks(hitokotoRefreshRunnable);
+    mainHandler.removeCallbacks(hitokotoScrollRunnable);
+    cancelHitokotoAnimation();
+  }
+
+  private void requestHitokoto() {
+    if (!hitokotoPolling || hitokotoRequestRunning || hitokotoExecutor.isShutdown()) {
+      return;
+    }
+    hitokotoRequestRunning = true;
+    int requestVersion = hitokotoRequestVersion.incrementAndGet();
+    hitokotoExecutor.execute(() -> {
+      String hitokoto = fetchHitokoto();
+      mainHandler.post(() -> {
+        hitokotoRequestRunning = false;
+        if (!canUpdateHitokoto() || requestVersion != hitokotoRequestVersion.get()) {
+          return;
+        }
+        if (!TextUtils.isEmpty(hitokoto)) {
+          updateHitokotoText(hitokoto);
+        }
+      });
+    });
+  }
+
+  private void scheduleNextHitokotoRequest() {
+    mainHandler.removeCallbacks(hitokotoRefreshRunnable);
+    if (hitokotoPolling) {
+      mainHandler.postDelayed(hitokotoRefreshRunnable, HITOKOTO_REFRESH_INTERVAL_MS);
+    }
+  }
+
+  @Nullable
+  private String fetchHitokoto() {
+    HttpURLConnection connection = null;
+    try {
+      URL url = new URL(HITOKOTO_URL + "&t=" + System.currentTimeMillis());
+      connection = (HttpURLConnection) url.openConnection();
+      connection.setRequestMethod("GET");
+      connection.setConnectTimeout(HITOKOTO_TIMEOUT_MS);
+      connection.setReadTimeout(HITOKOTO_TIMEOUT_MS);
+      connection.setRequestProperty("Accept", "application/json");
+      connection.setRequestProperty("User-Agent", "AccountBookAndroid/1.0");
+      if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+        return null;
+      }
+      String response = readStream(connection.getInputStream());
+      JSONObject jsonObject = new JSONObject(response);
+      String hitokoto = jsonObject.optString("hitokoto", "").trim();
+      if (hitokoto.length() == 0 || hitokoto.length() > HITOKOTO_MAX_LENGTH) {
+        return null;
+      }
+      return hitokoto;
+    } catch (Exception ignored) {
+      return null;
+    } finally {
+      if (connection != null) {
+        connection.disconnect();
+      }
+    }
+  }
+
+  private String readStream(InputStream inputStream) throws Exception {
+    StringBuilder builder = new StringBuilder();
+    BufferedReader reader = new BufferedReader(
+        new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+    String line;
+    while ((line = reader.readLine()) != null) {
+      builder.append(line);
+    }
+    reader.close();
+    return builder.toString();
+  }
+
+  private boolean canUpdateHitokoto() {
+    return hitokotoPolling && isAdded() && getView() != null && tvHomeSubtitle != null;
+  }
+
+  private void updateHitokotoText(String text) {
+    if (tvHomeSubtitle == null) {
+      return;
+    }
+    mainHandler.removeCallbacks(hitokotoScrollRunnable);
+    cancelHitokotoAnimation();
+    tvHomeSubtitle.setText(text);
+    tvHomeSubtitle.setVisibility(View.VISIBLE);
+    tvHomeSubtitle.setTranslationX(0);
+    mainHandler.postDelayed(hitokotoScrollRunnable, HITOKOTO_VISIBLE_BEFORE_SCROLL_MS);
+  }
+
+  private void startHitokotoScrollAnimation() {
+    if (tvHomeSubtitle == null) {
+      return;
+    }
+    int parentWidth = ((View) tvHomeSubtitle.getParent()).getWidth();
+    int textWidth = (int) tvHomeSubtitle.getPaint().measureText(tvHomeSubtitle.getText().toString());
+    if (parentWidth <= 0 || textWidth <= 0) {
+      return;
+    }
+    float startX = parentWidth;
+    float endX = -textWidth;
+    cancelHitokotoAnimation();
+    hitokotoAnimator = ObjectAnimator.ofFloat(tvHomeSubtitle, "translationX", startX, endX);
+    hitokotoAnimator.setDuration(HITOKOTO_SCROLL_DURATION_MS);
+    hitokotoAnimator.setRepeatCount(ValueAnimator.INFINITE);
+    hitokotoAnimator.start();
+  }
+
+  private void cancelHitokotoAnimation() {
+    if (hitokotoAnimator != null) {
+      hitokotoAnimator.cancel();
+      hitokotoAnimator = null;
+    }
+    if (tvHomeSubtitle != null) {
+      tvHomeSubtitle.setTranslationX(0);
+    }
   }
 
   private void refreshRecentBills() {

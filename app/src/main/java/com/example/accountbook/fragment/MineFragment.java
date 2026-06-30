@@ -1,5 +1,6 @@
 package com.example.accountbook.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.graphics.Typeface;
 import android.text.TextUtils;
@@ -17,18 +18,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.accountbook.activity.LoginActivity;
 import com.example.accountbook.MainActivity;
 import com.example.accountbook.R;
 import com.example.accountbook.db.AccountDao;
+import com.example.accountbook.db.UserDao;
 import com.example.accountbook.model.Account;
+import com.example.accountbook.model.User;
 import com.example.accountbook.util.PreferenceUtils;
+import com.example.accountbook.util.UserSessionUtils;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
 public class MineFragment extends Fragment {
 
   private AccountDao accountDao;
+  private UserDao userDao;
   private LinearLayout accountListContainer;
   private EditText etMonthlyBudget;
   private CheckBox cbBudgetWarnEnabled;
@@ -36,6 +43,12 @@ public class MineFragment extends Fragment {
   private boolean homeBudgetModeEnabled;
   private TextView tvAccountTotalBalance;
   private TextView tvAccountCount;
+  private TextView tvProfileGreeting;
+  private TextView tvProfileName;
+  private TextView tvProfileBadge;
+  private TextView tvProfileSlogan;
+  private View profileCard;
+  private View btnProfileSettings;
 
   @Nullable
   @Override
@@ -50,17 +63,31 @@ public class MineFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     accountDao = new AccountDao(requireContext());
+    userDao = new UserDao(requireContext());
     etMonthlyBudget = view.findViewById(R.id.etMonthlyBudget);
     cbBudgetWarnEnabled = view.findViewById(R.id.cbBudgetWarnEnabled);
     btnHomeBudgetMode = view.findViewById(R.id.btnHomeBudgetMode);
     accountListContainer = view.findViewById(R.id.accountListContainer);
     tvAccountTotalBalance = view.findViewById(R.id.tvAccountTotalBalance);
     tvAccountCount = view.findViewById(R.id.tvAccountCount);
+    profileCard = view.findViewById(R.id.profileCard);
+    tvProfileGreeting = view.findViewById(R.id.tvProfileGreeting);
+    tvProfileName = view.findViewById(R.id.tvProfileName);
+    tvProfileBadge = view.findViewById(R.id.tvProfileBadge);
+    tvProfileSlogan = view.findViewById(R.id.tvProfileSlogan);
+    btnProfileSettings = view.findViewById(R.id.btnProfileSettings);
+    btnProfileSettings.setOnClickListener(v -> ((MainActivity) requireActivity()).openToolbox());
+    profileCard.setOnClickListener(v -> {
+      if (!UserSessionUtils.isLoggedIn(requireContext())) {
+        startActivity(new Intent(requireContext(), LoginActivity.class));
+      }
+    });
     View btnSaveBudget = view.findViewById(R.id.btnSaveBudget);
     btnSaveBudget.setOnClickListener(v -> saveBudgetConfig());
     View entryGeneralSettings = view.findViewById(R.id.entryGeneralSettings);
     entryGeneralSettings.setOnClickListener(v -> ((MainActivity) requireActivity()).openToolbox());
     loadBudgetConfig();
+    refreshProfileCard();
     btnHomeBudgetMode.setOnClickListener(v -> toggleHomeBudgetMode());
     refreshAccountBalances();
   }
@@ -68,9 +95,58 @@ public class MineFragment extends Fragment {
   @Override
   public void onResume() {
     super.onResume();
+    refreshProfileCard();
     if (accountListContainer != null) {
       refreshAccountBalances();
     }
+  }
+
+  private void refreshProfileCard() {
+    if (tvProfileGreeting != null) {
+      tvProfileGreeting.setText(getGreetingText());
+    }
+    if (tvProfileName == null) {
+      return;
+    }
+    if (!UserSessionUtils.isLoggedIn(requireContext())) {
+      tvProfileName.setText(R.string.profile_not_logged_in);
+      tvProfileBadge.setText(R.string.profile_not_logged_in);
+      tvProfileSlogan.setText(R.string.profile_login_slogan);
+      btnProfileSettings.setVisibility(View.GONE);
+      return;
+    }
+    User user = userDao.getUserById(UserSessionUtils.getCurrentUserId(requireContext()));
+    if (user == null) {
+      UserSessionUtils.clearLoginSession(requireContext());
+      tvProfileName.setText(R.string.profile_not_logged_in);
+      tvProfileBadge.setText(R.string.profile_not_logged_in);
+      tvProfileSlogan.setText(R.string.profile_login_slogan);
+      btnProfileSettings.setVisibility(View.GONE);
+      return;
+    }
+    tvProfileName.setText(TextUtils.isEmpty(user.getNickname())
+        ? User.DEFAULT_NICKNAME
+        : user.getNickname());
+    tvProfileBadge.setText(TextUtils.isEmpty(user.getRoleLabel())
+        ? User.DEFAULT_ROLE_LABEL
+        : user.getRoleLabel());
+    if (TextUtils.isEmpty(user.getSignature())) {
+      tvProfileSlogan.setText(R.string.profile_default_slogan);
+    } else {
+      tvProfileSlogan.setText(user.getSignature());
+    }
+    btnProfileSettings.setVisibility(View.VISIBLE);
+  }
+
+  private String getGreetingText() {
+    int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+    if (hour >= 5 && hour < 12) {
+      return getString(R.string.profile_greeting_morning);
+    }
+    if (hour >= 12 && hour < 18) {
+      return getString(R.string.profile_greeting_afternoon);
+    }
+    return getString(R.string.profile_greeting_evening);
   }
 
   private void refreshAccountBalances() {

@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,6 +17,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.accountbook.MainActivity;
 import com.example.accountbook.R;
+import com.example.accountbook.util.UserSessionUtils;
 
 public class ToolboxFragment extends Fragment {
 
@@ -76,7 +78,17 @@ public class ToolboxFragment extends Fragment {
     list.addView(createDivider());
     list.addView(createToolItem(R.string.category_manage,
         v -> ((MainActivity) requireActivity()).openCategoryManage()));
+    if (UserSessionUtils.isLoggedIn(requireContext())) {
+      list.addView(createDivider());
+      list.addView(createToolItem(R.string.logout, v -> logout()));
+    }
     return list;
+  }
+
+  private void logout() {
+    UserSessionUtils.clearLoginSession(requireContext());
+    Toast.makeText(requireContext(), R.string.logout_success, Toast.LENGTH_SHORT).show();
+    ((MainActivity) requireActivity()).backToMine();
   }
 
   private View createToolItem(int titleRes, View.OnClickListener listener) {

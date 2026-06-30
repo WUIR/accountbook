@@ -24,12 +24,16 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/tvHomeSubtitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="18dp"
             android:layout_marginTop="4dp"
-            android:text="@string/home_subtitle"
+            android:ellipsize="none"
+            android:singleLine="true"
+            android:text=""
             android:textColor="@color/text_secondary"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:visibility="invisible" />
 
         <LinearLayout
             android:layout_width="match_parent"

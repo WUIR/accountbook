@@ -11,11 +11,12 @@ import com.example.accountbook.model.BillRecord;
 public class AccountBookDbHelper extends SQLiteOpenHelper {
 
   public static final String DATABASE_NAME = "account_book.db";
-  public static final int DATABASE_VERSION = 3;
+  public static final int DATABASE_VERSION = 4;
 
   public static final String TABLE_BILL_RECORD = "bill_record";
   public static final String TABLE_CATEGORY = "category";
   public static final String TABLE_ACCOUNT = "account";
+  public static final String TABLE_USER = "user";
 
   public static final String COLUMN_ID = "id";
   public static final String COLUMN_TYPE = "type";
@@ -32,6 +33,16 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
   public static final String COLUMN_ACCOUNT_TYPE = "account_type";
   public static final String COLUMN_BALANCE = "balance";
   public static final String COLUMN_IS_ACTIVE = "is_active";
+  public static final String COLUMN_USERNAME = "username";
+  public static final String COLUMN_PASSWORD_HASH = "password_hash";
+  public static final String COLUMN_PASSWORD_SALT = "password_salt";
+  public static final String COLUMN_NICKNAME = "nickname";
+  public static final String COLUMN_AVATAR_PATH = "avatar_path";
+  public static final String COLUMN_SIGNATURE = "signature";
+  public static final String COLUMN_ROLE_LABEL = "role_label";
+  public static final String COLUMN_CREATED_AT = "created_at";
+  public static final String COLUMN_UPDATED_AT = "updated_at";
+  public static final String COLUMN_LAST_LOGIN_AT = "last_login_at";
 
   public AccountBookDbHelper(Context context) {
     super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -65,6 +76,7 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
         + COLUMN_BALANCE + " REAL NOT NULL DEFAULT 0, "
         + COLUMN_IS_ACTIVE + " INTEGER NOT NULL DEFAULT 1"
         + ")");
+    createUserTable(db);
     insertDefaultCategories(db);
     insertDefaultAccounts(db);
   }
@@ -83,6 +95,27 @@ public class AccountBookDbHelper extends SQLiteOpenHelper {
       db.execSQL("ALTER TABLE " + TABLE_CATEGORY
           + " ADD COLUMN " + COLUMN_IS_ACTIVE + " INTEGER NOT NULL DEFAULT 1");
     }
+    if (oldVersion < 4) {
+      createUserTable(db);
+    }
+  }
+
+  private void createUserTable(SQLiteDatabase db) {
+    db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_USER + " ("
+        + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+        + COLUMN_USERNAME + " TEXT NOT NULL UNIQUE, "
+        + COLUMN_PASSWORD_HASH + " TEXT NOT NULL, "
+        + COLUMN_PASSWORD_SALT + " TEXT NOT NULL, "
+        + COLUMN_NICKNAME + " TEXT NOT NULL, "
+        + COLUMN_AVATAR_PATH + " TEXT, "
+        + COLUMN_SIGNATURE + " TEXT, "
+        + COLUMN_ROLE_LABEL + " TEXT NOT NULL DEFAULT '普通用户', "
+        + COLUMN_CREATED_AT + " INTEGER NOT NULL, "
+        + COLUMN_UPDATED_AT + " INTEGER NOT NULL, "
+        + COLUMN_LAST_LOGIN_AT + " INTEGER"
+        + ")");
+    db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_user_username ON "
+        + TABLE_USER + "(" + COLUMN_USERNAME + ")");
   }
 
   private void insertDefaultCategories(SQLiteDatabase db) {
