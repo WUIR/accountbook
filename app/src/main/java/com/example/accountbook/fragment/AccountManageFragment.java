@@ -7,7 +7,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -54,17 +53,18 @@ public class AccountManageFragment extends Fragment {
     scrollView.setBackgroundColor(getColor(R.color.app_background));
     LinearLayout root = new LinearLayout(requireContext());
     root.setOrientation(LinearLayout.VERTICAL);
-    root.setPadding(dp(20), dp(20), dp(20), dp(20));
+    root.setPadding(dp(20), dp(20), dp(20), dp(32));
     scrollView.addView(root);
     root.addView(createTitleRow());
-    Button btnAdd = new Button(requireContext());
-    btnAdd.setText("新增账户");
+    TextView btnAdd = createActionButton("新增账户", true);
     btnAdd.setOnClickListener(v -> showEditDialog(null));
-    root.addView(btnAdd);
+    LinearLayout.LayoutParams addParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        dp(44));
+    addParams.setMargins(0, dp(18), 0, dp(14));
+    root.addView(btnAdd, addParams);
     listContainer = new LinearLayout(requireContext());
     listContainer.setOrientation(LinearLayout.VERTICAL);
-    listContainer.setBackgroundResource(R.drawable.bg_panel);
-    listContainer.setPadding(dp(18), dp(10), dp(18), dp(10));
     root.addView(listContainer);
     return scrollView;
   }
@@ -91,17 +91,22 @@ public class AccountManageFragment extends Fragment {
 
   private View createItem(Account account) {
     LinearLayout item = new LinearLayout(requireContext());
+    LinearLayout.LayoutParams itemParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT);
+    itemParams.setMargins(0, 0, 0, dp(10));
+    item.setLayoutParams(itemParams);
+    item.setBackgroundResource(R.drawable.bg_home_light_card);
     item.setOrientation(LinearLayout.VERTICAL);
-    item.setPadding(0, dp(8), 0, dp(8));
+    item.setPadding(dp(14), dp(12), dp(14), dp(12));
     item.addView(createText(account.getName() + "  " + typeLabel(account.getAccountType())
         + "  " + MoneyUtils.format(account.getBalance())
         + (account.isActive() ? "" : "  已停用"), 16, R.color.text_primary));
     LinearLayout actions = new LinearLayout(requireContext());
-    Button edit = new Button(requireContext());
-    edit.setText("编辑");
+    actions.setPadding(0, dp(8), 0, 0);
+    TextView edit = createActionButton("编辑", true);
     edit.setOnClickListener(v -> showEditDialog(account));
-    Button remove = new Button(requireContext());
-    remove.setText(billRecordDao.hasRecordsByAccountId(account.getId()) ? "停用" : "删除");
+    TextView remove = createActionButton(billRecordDao.hasRecordsByAccountId(account.getId()) ? "停用" : "删除", false);
     remove.setOnClickListener(v -> confirmRemove(account));
     actions.addView(edit, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
     actions.addView(remove, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -197,10 +202,12 @@ public class AccountManageFragment extends Fragment {
     TextView title = createText("账户管理", 24, R.color.text_primary);
     title.setTypeface(null, android.graphics.Typeface.BOLD);
     row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-    Button button = new Button(requireContext());
-    button.setText("返回上一级");
-    button.setOnClickListener(v -> ((MainActivity) requireActivity()).backToToolbox());
-    row.addView(button);
+    TextView back = createText("返回上一级", 14, R.color.text_secondary);
+    back.setGravity(Gravity.CENTER);
+    back.setMinHeight(dp(40));
+    back.setPadding(dp(12), 0, 0, 0);
+    back.setOnClickListener(v -> ((MainActivity) requireActivity()).backToToolbox());
+    row.addView(back);
     return row;
   }
 
@@ -224,6 +231,15 @@ public class AccountManageFragment extends Fragment {
     textView.setTextSize(sp);
     textView.setTextColor(getColor(colorRes));
     return textView;
+  }
+
+  private TextView createActionButton(String text, boolean primary) {
+    TextView button = createText(text, 14, primary ? R.color.white : R.color.text_primary);
+    button.setBackgroundResource(primary ? R.drawable.bg_save_button : R.drawable.bg_plain_button);
+    button.setClickable(true);
+    button.setFocusable(true);
+    button.setGravity(Gravity.CENTER);
+    return button;
   }
 
   private int getColor(int resId) {

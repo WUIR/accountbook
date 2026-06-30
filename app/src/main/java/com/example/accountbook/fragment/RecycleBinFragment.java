@@ -5,7 +5,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -41,13 +40,11 @@ public class RecycleBinFragment extends Fragment {
     scrollView.setBackgroundColor(getColor(R.color.app_background));
     LinearLayout root = new LinearLayout(requireContext());
     root.setOrientation(LinearLayout.VERTICAL);
-    root.setPadding(dp(20), dp(20), dp(20), dp(20));
+    root.setPadding(dp(20), dp(20), dp(20), dp(32));
     scrollView.addView(root);
     root.addView(createTitleRow());
     listContainer = new LinearLayout(requireContext());
     listContainer.setOrientation(LinearLayout.VERTICAL);
-    listContainer.setBackgroundResource(R.drawable.bg_panel);
-    listContainer.setPadding(dp(18), dp(10), dp(18), dp(10));
     root.addView(listContainer);
     return scrollView;
   }
@@ -78,8 +75,14 @@ public class RecycleBinFragment extends Fragment {
 
   private View createItem(BillRecord record) {
     LinearLayout item = new LinearLayout(requireContext());
+    LinearLayout.LayoutParams itemParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT);
+    itemParams.setMargins(0, 0, 0, dp(10));
+    item.setLayoutParams(itemParams);
+    item.setBackgroundResource(R.drawable.bg_home_light_card);
     item.setOrientation(LinearLayout.VERTICAL);
-    item.setPadding(0, dp(10), 0, dp(10));
+    item.setPadding(dp(14), dp(12), dp(14), dp(12));
     String sign = BillRecord.TYPE_INCOME.equals(record.getType()) ? "+" : "-";
     item.addView(createText(record.getCategoryName() + "  " + sign + MoneyUtils.format(record.getAmount()),
         16, R.color.text_primary));
@@ -87,15 +90,14 @@ public class RecycleBinFragment extends Fragment {
         + "  剩余 " + DateUtils.getRecycleDaysLeft(record.getDeletedAt()) + " 天",
         13, R.color.text_secondary));
     LinearLayout actions = new LinearLayout(requireContext());
-    Button restore = new Button(requireContext());
-    restore.setText("恢复");
+    actions.setPadding(0, dp(8), 0, 0);
+    TextView restore = createActionButton("恢复", true);
     restore.setOnClickListener(v -> {
       boolean success = billRecordDao.restoreFromRecycleBin(record.getId());
       Toast.makeText(requireContext(), success ? "已恢复" : "恢复失败", Toast.LENGTH_SHORT).show();
       refreshList();
     });
-    Button delete = new Button(requireContext());
-    delete.setText("彻底删除");
+    TextView delete = createActionButton("彻底删除", false);
     delete.setOnClickListener(v -> confirmDelete(record.getId()));
     actions.addView(restore, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
     actions.addView(delete, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
@@ -136,11 +138,22 @@ public class RecycleBinFragment extends Fragment {
     TextView title = createText("回收站", 24, R.color.text_primary);
     title.setTypeface(null, android.graphics.Typeface.BOLD);
     row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-    Button button = new Button(requireContext());
-    button.setText("返回上一级");
-    button.setOnClickListener(v -> ((MainActivity) requireActivity()).backToToolbox());
-    row.addView(button);
+    TextView back = createText("返回上一级", 14, R.color.text_secondary);
+    back.setGravity(Gravity.CENTER);
+    back.setMinHeight(dp(40));
+    back.setPadding(dp(12), 0, 0, 0);
+    back.setOnClickListener(v -> ((MainActivity) requireActivity()).backToToolbox());
+    row.addView(back);
     return row;
+  }
+
+  private TextView createActionButton(String text, boolean primary) {
+    TextView button = createText(text, 14, primary ? R.color.white : R.color.text_primary);
+    button.setBackgroundResource(primary ? R.drawable.bg_save_button : R.drawable.bg_plain_button);
+    button.setClickable(true);
+    button.setFocusable(true);
+    button.setGravity(Gravity.CENTER);
+    return button;
   }
 
   private TextView createText(String text, int sp, int colorRes) {

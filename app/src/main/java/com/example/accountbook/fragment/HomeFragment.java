@@ -185,7 +185,7 @@ public class HomeFragment extends Fragment {
     itemView.setBackgroundResource(R.drawable.bg_home_light_card);
     itemView.setGravity(Gravity.CENTER_VERTICAL);
     itemView.setOrientation(LinearLayout.HORIZONTAL);
-    itemView.setPadding(dpToPx(12), dpToPx(12), dpToPx(12), dpToPx(12));
+    itemView.setPadding(dpToPx(14), dpToPx(12), dpToPx(14), dpToPx(12));
 
     TextView categoryMark = new TextView(requireContext());
     LinearLayout.LayoutParams markParams = new LinearLayout.LayoutParams(dpToPx(40), dpToPx(40));
@@ -208,6 +208,7 @@ public class HomeFragment extends Fragment {
 
     TextView titleView = createTextView(safeText(record.getCategoryName()), 15);
     titleView.setTextColor(getColor(R.color.text_primary));
+    titleView.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
     TextView detailView = createTextView(formatBillDetail(record), 13);
     detailView.setTextColor(getColor(R.color.text_secondary));
     contentView.addView(titleView);

@@ -5,7 +5,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -41,7 +40,7 @@ public class StatisticsFragment extends Fragment {
     scrollView.setBackgroundColor(getColor(R.color.app_background));
     root = new LinearLayout(requireContext());
     root.setOrientation(LinearLayout.VERTICAL);
-    root.setPadding(dp(20), dp(20), dp(20), dp(20));
+    root.setPadding(dp(20), dp(20), dp(20), dp(32));
     scrollView.addView(root);
     return scrollView;
   }
@@ -89,15 +88,7 @@ public class StatisticsFragment extends Fragment {
       ranking.addView(empty);
     } else {
       for (CategorySummary summary : summaries) {
-        ranking.addView(createText(
-            String.format(
-                Locale.CHINA,
-                "%s  %s  %.0f%%",
-                summary.getCategoryName(),
-                MoneyUtils.format(summary.getAmount()),
-                summary.getRatio() * 100),
-            16,
-            R.color.text_primary));
+        ranking.addView(createRankingRow(summary));
       }
     }
     root.addView(ranking);
@@ -115,7 +106,7 @@ public class StatisticsFragment extends Fragment {
   private LinearLayout createPanel() {
     LinearLayout panel = new LinearLayout(requireContext());
     panel.setOrientation(LinearLayout.VERTICAL);
-    panel.setBackgroundResource(R.drawable.bg_panel);
+    panel.setBackgroundResource(R.drawable.bg_home_light_card);
     panel.setPadding(dp(18), dp(14), dp(18), dp(14));
     LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -137,10 +128,28 @@ public class StatisticsFragment extends Fragment {
     TextView title = createText("统计", 24, R.color.text_primary);
     title.setTypeface(null, android.graphics.Typeface.BOLD);
     row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-    Button button = new Button(requireContext());
-    button.setText("返回首页");
-    button.setOnClickListener(v -> ((MainActivity) requireActivity()).backToHome());
-    row.addView(button);
+    TextView back = createText("返回首页", 14, R.color.text_secondary);
+    back.setGravity(Gravity.CENTER);
+    back.setMinHeight(dp(40));
+    back.setPadding(dp(12), 0, 0, 0);
+    back.setOnClickListener(v -> ((MainActivity) requireActivity()).backToHome());
+    row.addView(back);
+    return row;
+  }
+
+  private View createRankingRow(CategorySummary summary) {
+    LinearLayout row = new LinearLayout(requireContext());
+    row.setGravity(Gravity.CENTER_VERTICAL);
+    row.setOrientation(LinearLayout.HORIZONTAL);
+    row.setPadding(0, dp(8), 0, dp(8));
+    TextView name = createText(summary.getCategoryName(), 15, R.color.text_primary);
+    row.addView(name, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+    TextView amount = createText(
+        String.format(Locale.CHINA, "%s  %.0f%%", MoneyUtils.format(summary.getAmount()), summary.getRatio() * 100),
+        15,
+        R.color.text_primary);
+    amount.setGravity(Gravity.END);
+    row.addView(amount);
     return row;
   }
 

@@ -1,6 +1,7 @@
 package com.example.accountbook.fragment;
 
 import android.os.Bundle;
+import android.graphics.Typeface;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -179,6 +180,7 @@ public class MineFragment extends Fragment {
     nameView.setText(account.getName());
     nameView.setTextColor(getColor(account.isActive() ? R.color.text_primary : R.color.text_secondary));
     nameView.setTextSize(15);
+    nameView.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
 
     TextView balanceView = new TextView(requireContext());
     balanceView.setLayoutParams(new LinearLayout.LayoutParams(

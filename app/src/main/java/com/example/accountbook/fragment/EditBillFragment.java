@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -101,21 +100,29 @@ public class EditBillFragment extends Fragment {
     scrollView.setBackgroundColor(getColor(R.color.app_background));
     LinearLayout root = new LinearLayout(requireContext());
     root.setOrientation(LinearLayout.VERTICAL);
-    root.setPadding(dp(20), dp(20), dp(20), dp(20));
+    root.setPadding(dp(20), dp(20), dp(20), dp(32));
     scrollView.addView(root);
     root.addView(createTitleRow());
 
     rgType = new RadioGroup(requireContext());
     rgType.setOrientation(RadioGroup.HORIZONTAL);
+    rgType.setBackgroundResource(R.drawable.bg_segment_container);
+    rgType.setPadding(dp(3), dp(3), dp(3), dp(3));
     rbExpense = new RadioButton(requireContext());
     rbExpense.setId(View.generateViewId());
     rbExpense.setText("支出");
+    styleSegmentButton(rbExpense);
     rbIncome = new RadioButton(requireContext());
     rbIncome.setId(View.generateViewId());
     rbIncome.setText("收入");
-    rgType.addView(rbExpense);
-    rgType.addView(rbIncome);
-    root.addView(rgType);
+    styleSegmentButton(rbIncome);
+    rgType.addView(rbExpense, new RadioGroup.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
+    rgType.addView(rbIncome, new RadioGroup.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
+    LinearLayout.LayoutParams typeParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        dp(44));
+    typeParams.setMargins(dp(18), dp(20), dp(18), dp(14));
+    root.addView(rgType, typeParams);
 
     etAmount = new EditText(requireContext());
     etAmount.setHint("请输入金额");
@@ -123,8 +130,11 @@ public class EditBillFragment extends Fragment {
         | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
     etAmount.setBackgroundResource(R.drawable.bg_input);
     etAmount.setPadding(dp(14), 0, dp(14), 0);
-    root.addView(etAmount, new LinearLayout.LayoutParams(
-        ViewGroup.LayoutParams.MATCH_PARENT, dp(52)));
+    LinearLayout.LayoutParams amountParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        dp(52));
+    amountParams.setMargins(0, 0, 0, dp(12));
+    root.addView(etAmount, amountParams);
 
     spCategory = new Spinner(requireContext());
     root.addView(createLabeledView("分类", spCategory));
@@ -147,26 +157,27 @@ public class EditBillFragment extends Fragment {
     tvVoucherStatus.setPadding(0, dp(12), 0, dp(4));
     root.addView(tvVoucherStatus);
     LinearLayout voucherActions = new LinearLayout(requireContext());
-    Button btnSelectVoucher = new Button(requireContext());
-    btnSelectVoucher.setText("替换凭证");
+    TextView btnSelectVoucher = createActionButton("替换凭证", false);
     btnSelectVoucher.setOnClickListener(v -> openVoucherPicker());
-    Button btnRemoveVoucher = new Button(requireContext());
-    btnRemoveVoucher.setText("移除凭证");
+    TextView btnRemoveVoucher = createActionButton("移除凭证", false);
     btnRemoveVoucher.setOnClickListener(v -> removeSelectedVoucher());
     voucherActions.addView(btnSelectVoucher, new LinearLayout.LayoutParams(
         0,
-        ViewGroup.LayoutParams.WRAP_CONTENT,
+        dp(44),
         1));
     voucherActions.addView(btnRemoveVoucher, new LinearLayout.LayoutParams(
         0,
-        ViewGroup.LayoutParams.WRAP_CONTENT,
+        dp(44),
         1));
     root.addView(voucherActions);
 
-    Button btnSave = new Button(requireContext());
-    btnSave.setText("保存修改");
+    TextView btnSave = createActionButton("保存修改", true);
     btnSave.setOnClickListener(v -> saveEdit());
-    root.addView(btnSave);
+    LinearLayout.LayoutParams saveParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        dp(46));
+    saveParams.setMargins(0, dp(14), 0, 0);
+    root.addView(btnSave, saveParams);
     return scrollView;
   }
 
@@ -374,10 +385,12 @@ public class EditBillFragment extends Fragment {
     TextView title = createText("编辑账单", 24, R.color.text_primary);
     title.setTypeface(null, android.graphics.Typeface.BOLD);
     row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-    Button button = new Button(requireContext());
-    button.setText("返回详情");
-    button.setOnClickListener(v -> ((MainActivity) requireActivity()).openBillDetail(billId));
-    row.addView(button);
+    TextView back = createText("返回详情", 14, R.color.text_secondary);
+    back.setGravity(Gravity.CENTER);
+    back.setMinHeight(dp(40));
+    back.setPadding(dp(12), 0, 0, 0);
+    back.setOnClickListener(v -> ((MainActivity) requireActivity()).openBillDetail(billId));
+    row.addView(back);
     return row;
   }
 
@@ -397,6 +410,23 @@ public class EditBillFragment extends Fragment {
     textView.setTextSize(sp);
     textView.setTextColor(getColor(colorRes));
     return textView;
+  }
+
+  private TextView createActionButton(String text, boolean primary) {
+    TextView button = createText(text, 15, primary ? R.color.white : R.color.text_primary);
+    button.setBackgroundResource(primary ? R.drawable.bg_save_button : R.drawable.bg_plain_button);
+    button.setClickable(true);
+    button.setFocusable(true);
+    button.setGravity(Gravity.CENTER);
+    return button;
+  }
+
+  private void styleSegmentButton(RadioButton button) {
+    button.setBackgroundResource(R.drawable.bg_segment_option);
+    button.setButtonDrawable(null);
+    button.setGravity(Gravity.CENTER);
+    button.setTextColor(getResources().getColorStateList(R.color.segment_text_color, requireContext().getTheme()));
+    button.setTextSize(15);
   }
 
   private int getColor(int resId) {

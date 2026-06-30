@@ -6,7 +6,6 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -57,7 +56,7 @@ public class BillDetailFragment extends Fragment {
     scrollView.setBackgroundColor(getColor(R.color.app_background));
     contentContainer = new LinearLayout(requireContext());
     contentContainer.setOrientation(LinearLayout.VERTICAL);
-    contentContainer.setPadding(dp(20), dp(20), dp(20), dp(20));
+    contentContainer.setPadding(dp(20), dp(20), dp(20), dp(32));
     scrollView.addView(contentContainer);
     return scrollView;
   }
@@ -83,7 +82,7 @@ public class BillDetailFragment extends Fragment {
     }
     LinearLayout panel = new LinearLayout(requireContext());
     panel.setOrientation(LinearLayout.VERTICAL);
-    panel.setBackgroundResource(R.drawable.bg_panel);
+    panel.setBackgroundResource(R.drawable.bg_home_light_card);
     panel.setPadding(dp(18), dp(18), dp(18), dp(18));
     contentContainer.addView(panel);
 
@@ -96,15 +95,16 @@ public class BillDetailFragment extends Fragment {
     panel.addView(createField("创建时间", formatTime(record.getCreateTime())));
     panel.addView(createVoucherView(record));
 
-    Button btnEdit = new Button(requireContext());
-    btnEdit.setText("编辑账单");
-    btnEdit.setOnClickListener(v -> ((MainActivity) requireActivity()).openEditBill(billId));
-    contentContainer.addView(btnEdit);
-
-    Button btnDelete = new Button(requireContext());
-    btnDelete.setText("移入回收站");
-    btnDelete.setOnClickListener(v -> confirmDelete());
-    contentContainer.addView(btnDelete);
+    LinearLayout actions = new LinearLayout(requireContext());
+    actions.setOrientation(LinearLayout.HORIZONTAL);
+    LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT);
+    actionParams.setMargins(0, dp(14), 0, 0);
+    contentContainer.addView(actions, actionParams);
+    actions.addView(createActionButton("编辑账单", true,
+        v -> ((MainActivity) requireActivity()).openEditBill(billId)));
+    actions.addView(createActionButton("移入回收站", false, v -> confirmDelete()));
   }
 
   private void confirmDelete() {
@@ -128,15 +128,39 @@ public class BillDetailFragment extends Fragment {
     TextView title = createText("账单详情", 24, R.color.text_primary);
     title.setTypeface(null, android.graphics.Typeface.BOLD);
     row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-    Button button = new Button(requireContext());
-    button.setText("返回列表");
-    button.setOnClickListener(v -> ((MainActivity) requireActivity()).backToBillList());
-    row.addView(button);
+    TextView back = createText("返回列表", 14, R.color.text_secondary);
+    back.setGravity(Gravity.CENTER);
+    back.setMinHeight(dp(40));
+    back.setPadding(dp(12), 0, 0, 0);
+    back.setOnClickListener(v -> ((MainActivity) requireActivity()).backToBillList());
+    row.addView(back);
     return row;
   }
 
-  private TextView createField(String label, String value) {
-    return createText(label + "：" + (value == null ? "" : value), 16, R.color.text_primary);
+  private View createField(String label, String value) {
+    LinearLayout row = new LinearLayout(requireContext());
+    row.setGravity(Gravity.CENTER_VERTICAL);
+    row.setOrientation(LinearLayout.HORIZONTAL);
+    row.setPadding(0, dp(7), 0, dp(7));
+    TextView labelView = createText(label, 15, R.color.text_secondary);
+    row.addView(labelView, new LinearLayout.LayoutParams(dp(78), ViewGroup.LayoutParams.WRAP_CONTENT));
+    TextView valueView = createText(value == null ? "" : value, 15, R.color.text_primary);
+    valueView.setGravity(Gravity.END);
+    row.addView(valueView, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+    return row;
+  }
+
+  private TextView createActionButton(String text, boolean primary, View.OnClickListener listener) {
+    TextView button = createText(text, 15, primary ? R.color.white : R.color.text_primary);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(46), 1);
+    params.setMargins(primary ? 0 : dp(10), 0, 0, 0);
+    button.setLayoutParams(params);
+    button.setBackgroundResource(primary ? R.drawable.bg_save_button : R.drawable.bg_plain_button);
+    button.setClickable(true);
+    button.setFocusable(true);
+    button.setGravity(Gravity.CENTER);
+    button.setOnClickListener(listener);
+    return button;
   }
 
   private View createVoucherView(BillRecord record) {

@@ -1,12 +1,13 @@
 package com.example.accountbook.fragment;
 
 import android.os.Bundle;
+import android.content.res.TypedArray;
+import android.graphics.Typeface;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
@@ -55,23 +56,14 @@ public class BillListFragment extends Fragment {
     scrollView.setBackgroundColor(getColor(R.color.app_background));
     LinearLayout root = new LinearLayout(requireContext());
     root.setOrientation(LinearLayout.VERTICAL);
-    root.setPadding(dp(20), dp(20), dp(20), dp(20));
+    root.setPadding(dp(20), dp(20), dp(20), dp(32));
     scrollView.addView(root);
 
-    root.addView(createTitleRow("全部账单", "返回首页", v -> ((MainActivity) requireActivity()).backToHome()));
-    root.addView(createSpinner("日期", new String[] {"全部", "本周", "本月"}, view -> spDateRange = view));
-    root.addView(createSpinner("类型", new String[] {"全部", "收入", "支出"}, view -> spType = view));
-    root.addView(createSpinner("分类", new String[] {"全部"}, view -> spCategory = view));
-    root.addView(createSpinner("账户", new String[] {"全部"}, view -> spAccount = view));
-    Button btnApply = new Button(requireContext());
-    btnApply.setText("应用筛选");
-    btnApply.setOnClickListener(v -> refreshList());
-    root.addView(btnApply);
+    root.addView(createTitleRow());
+    root.addView(createFilterCard());
 
     listContainer = new LinearLayout(requireContext());
     listContainer.setOrientation(LinearLayout.VERTICAL);
-    listContainer.setBackgroundResource(R.drawable.bg_panel);
-    listContainer.setPadding(dp(18), dp(10), dp(18), dp(10));
     LinearLayout.LayoutParams listParams = new LinearLayout.LayoutParams(
         ViewGroup.LayoutParams.MATCH_PARENT,
         ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -162,34 +154,95 @@ public class BillListFragment extends Fragment {
 
   private View createBillItem(BillRecord record) {
     LinearLayout item = new LinearLayout(requireContext());
-    item.setOrientation(LinearLayout.VERTICAL);
-    item.setPadding(0, dp(10), 0, dp(10));
+    LinearLayout.LayoutParams itemParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT);
+    itemParams.setMargins(0, 0, 0, dp(10));
+    item.setLayoutParams(itemParams);
+    item.setBackgroundResource(R.drawable.bg_home_light_card);
+    item.setGravity(Gravity.CENTER_VERTICAL);
+    item.setOrientation(LinearLayout.HORIZONTAL);
+    item.setPadding(dp(14), dp(12), dp(14), dp(12));
     item.setOnClickListener(v -> ((MainActivity) requireActivity()).openBillDetail(record.getId()));
-    String sign = BillRecord.TYPE_INCOME.equals(record.getType()) ? "+" : "-";
-    item.addView(createText(record.getCategoryName() + "  " + sign + MoneyUtils.format(record.getAmount()),
-        16, R.color.text_primary));
-    item.addView(createText(record.getRecordDate() + "  " + record.getAccountName() + "  "
-        + nullToEmpty(record.getRemark()), 13, R.color.text_secondary));
+
+    TextView markView = createAccountMark(record);
+    item.addView(markView);
+
+    LinearLayout content = new LinearLayout(requireContext());
+    LinearLayout.LayoutParams contentParams = new LinearLayout.LayoutParams(
+        0,
+        ViewGroup.LayoutParams.WRAP_CONTENT,
+        1);
+    contentParams.setMargins(dp(12), 0, dp(12), 0);
+    content.setLayoutParams(contentParams);
+    content.setOrientation(LinearLayout.VERTICAL);
+
+    TextView title = createText(nullToEmpty(record.getCategoryName()), 15, R.color.text_primary);
+    title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+    TextView detail = createText(formatBillDetail(record), 13, R.color.text_secondary);
+    detail.setPadding(0, dp(4), 0, 0);
+    content.addView(title);
+    content.addView(detail);
+
+    TextView amount = createText(formatBillAmount(record), 15, R.color.text_primary);
+    amount.setGravity(Gravity.END);
+    item.addView(content);
+    item.addView(amount);
     return item;
   }
 
-  private LinearLayout createTitleRow(String title, String buttonText, View.OnClickListener listener) {
+  private LinearLayout createTitleRow() {
     LinearLayout row = new LinearLayout(requireContext());
     row.setGravity(Gravity.CENTER_VERTICAL);
-    TextView titleView = createText(title, 24, R.color.text_primary);
-    titleView.setTypeface(null, android.graphics.Typeface.BOLD);
+    TextView titleView = createText("全部账单", 24, R.color.text_primary);
+    titleView.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
     row.addView(titleView, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-    Button button = new Button(requireContext());
-    button.setText(buttonText);
-    button.setOnClickListener(listener);
-    row.addView(button);
+    TextView backView = createText("返回首页", 14, R.color.text_secondary);
+    backView.setGravity(Gravity.CENTER);
+    backView.setMinHeight(dp(40));
+    backView.setPadding(dp(12), 0, 0, 0);
+    backView.setOnClickListener(v -> ((MainActivity) requireActivity()).backToHome());
+    row.addView(backView);
     return row;
+  }
+
+  private View createFilterCard() {
+    LinearLayout card = new LinearLayout(requireContext());
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT);
+    params.setMargins(0, dp(18), 0, 0);
+    card.setLayoutParams(params);
+    card.setBackgroundResource(R.drawable.bg_home_light_card);
+    card.setOrientation(LinearLayout.VERTICAL);
+    card.setPadding(dp(14), dp(8), dp(14), dp(14));
+    card.addView(createSpinner("日期", new String[] {"全部", "本周", "本月"}, view -> spDateRange = view));
+    card.addView(createSpinner("类型", new String[] {"全部", "收入", "支出"}, view -> spType = view));
+    card.addView(createSpinner("分类", new String[] {"全部"}, view -> spCategory = view));
+    card.addView(createSpinner("账户", new String[] {"全部"}, view -> spAccount = view));
+    TextView applyView = createText("应用筛选", 15, R.color.white);
+    LinearLayout.LayoutParams applyParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        dp(44));
+    applyParams.setMargins(0, dp(10), 0, 0);
+    applyView.setLayoutParams(applyParams);
+    applyView.setBackgroundResource(R.drawable.bg_save_button);
+    applyView.setClickable(true);
+    applyView.setFocusable(true);
+    TypedArray typedArray = requireContext().getTheme()
+        .obtainStyledAttributes(new int[] { android.R.attr.selectableItemBackground });
+    applyView.setForeground(typedArray.getDrawable(0));
+    typedArray.recycle();
+    applyView.setGravity(Gravity.CENTER);
+    applyView.setOnClickListener(v -> refreshList());
+    card.addView(applyView);
+    return card;
   }
 
   private View createSpinner(String label, String[] values, SpinnerSetter setter) {
     LinearLayout row = new LinearLayout(requireContext());
     row.setGravity(Gravity.CENTER_VERTICAL);
-    row.setPadding(0, dp(10), 0, 0);
+    row.setPadding(0, dp(6), 0, dp(6));
     TextView labelView = createText(label, 15, R.color.text_primary);
     row.addView(labelView, new LinearLayout.LayoutParams(dp(58), ViewGroup.LayoutParams.WRAP_CONTENT));
     Spinner spinner = new Spinner(requireContext());
@@ -205,6 +258,42 @@ public class BillListFragment extends Fragment {
     textView.setTextSize(sp);
     textView.setTextColor(getColor(colorRes));
     return textView;
+  }
+
+  private TextView createAccountMark(BillRecord record) {
+    TextView markView = new TextView(requireContext());
+    markView.setLayoutParams(new LinearLayout.LayoutParams(dp(40), dp(40)));
+    markView.setBackgroundResource(R.drawable.bg_category_dot);
+    markView.setGravity(Gravity.CENTER);
+    markView.setText(getCategoryInitial(record));
+    markView.setTextColor(getColor(R.color.brand_green));
+    markView.setTextSize(14);
+    markView.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+    return markView;
+  }
+
+  private String formatBillAmount(BillRecord record) {
+    String sign = BillRecord.TYPE_INCOME.equals(record.getType()) ? "+" : "-";
+    return sign + MoneyUtils.format(record.getAmount());
+  }
+
+  private String formatBillDetail(BillRecord record) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(nullToEmpty(record.getRecordDate()))
+        .append("  ")
+        .append(nullToEmpty(record.getAccountName()));
+    if (!nullToEmpty(record.getRemark()).isEmpty()) {
+      builder.append("  ").append(record.getRemark());
+    }
+    return builder.toString();
+  }
+
+  private String getCategoryInitial(BillRecord record) {
+    String categoryName = nullToEmpty(record.getCategoryName());
+    if (categoryName.isEmpty()) {
+      return "账";
+    }
+    return categoryName.substring(0, 1);
   }
 
   private String nullToEmpty(String text) {

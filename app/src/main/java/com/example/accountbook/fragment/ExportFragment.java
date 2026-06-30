@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -42,21 +41,21 @@ public class ExportFragment extends Fragment {
     scrollView.setBackgroundColor(getColor(R.color.app_background));
     LinearLayout root = new LinearLayout(requireContext());
     root.setOrientation(LinearLayout.VERTICAL);
-    root.setPadding(dp(20), dp(20), dp(20), dp(20));
+    root.setPadding(dp(20), dp(20), dp(20), dp(32));
     scrollView.addView(root);
     root.addView(createTitleRow());
-    root.addView(createText("当前 MVP 导出范围：本月正常账单", 15, R.color.text_secondary));
-    Button btnCsv = new Button(requireContext());
-    btnCsv.setText("导出本月 CSV");
+    LinearLayout panel = createPanel();
+    panel.addView(createText("当前 MVP 导出范围：本月正常账单", 15, R.color.text_secondary));
+    TextView btnCsv = createActionButton("导出本月 CSV", true);
     btnCsv.setOnClickListener(v -> exportCsv());
-    root.addView(btnCsv);
-    Button btnPdf = new Button(requireContext());
-    btnPdf.setText("导出本月 PDF");
+    panel.addView(btnCsv);
+    TextView btnPdf = createActionButton("导出本月 PDF", false);
     btnPdf.setOnClickListener(v -> exportPdf());
-    root.addView(btnPdf);
+    panel.addView(btnPdf);
     tvResult = createText("暂无导出文件", 14, R.color.text_secondary);
     tvResult.setPadding(0, dp(12), 0, 0);
-    root.addView(tvResult);
+    panel.addView(tvResult);
+    root.addView(panel);
     return scrollView;
   }
 
@@ -106,11 +105,40 @@ public class ExportFragment extends Fragment {
     TextView title = createText("导出账单", 24, R.color.text_primary);
     title.setTypeface(null, android.graphics.Typeface.BOLD);
     row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-    Button button = new Button(requireContext());
-    button.setText("返回上一级");
-    button.setOnClickListener(v -> ((MainActivity) requireActivity()).backToToolbox());
-    row.addView(button);
+    TextView back = createText("返回上一级", 14, R.color.text_secondary);
+    back.setGravity(Gravity.CENTER);
+    back.setMinHeight(dp(40));
+    back.setPadding(dp(12), 0, 0, 0);
+    back.setOnClickListener(v -> ((MainActivity) requireActivity()).backToToolbox());
+    row.addView(back);
     return row;
+  }
+
+  private LinearLayout createPanel() {
+    LinearLayout panel = new LinearLayout(requireContext());
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT);
+    params.setMargins(0, dp(18), 0, 0);
+    panel.setLayoutParams(params);
+    panel.setBackgroundResource(R.drawable.bg_home_light_card);
+    panel.setOrientation(LinearLayout.VERTICAL);
+    panel.setPadding(dp(16), dp(14), dp(16), dp(16));
+    return panel;
+  }
+
+  private TextView createActionButton(String text, boolean primary) {
+    TextView button = createText(text, 15, primary ? R.color.white : R.color.text_primary);
+    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        dp(44));
+    params.setMargins(0, dp(10), 0, 0);
+    button.setLayoutParams(params);
+    button.setBackgroundResource(primary ? R.drawable.bg_save_button : R.drawable.bg_plain_button);
+    button.setClickable(true);
+    button.setFocusable(true);
+    button.setGravity(Gravity.CENTER);
+    return button;
   }
 
   private TextView createText(String text, int sp, int colorRes) {
