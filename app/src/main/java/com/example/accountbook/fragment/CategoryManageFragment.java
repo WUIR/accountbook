@@ -173,8 +173,8 @@ public class CategoryManageFragment extends Fragment {
     title.setTypeface(null, android.graphics.Typeface.BOLD);
     row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
     Button button = new Button(requireContext());
-    button.setText("返回我的");
-    button.setOnClickListener(v -> ((MainActivity) requireActivity()).backToMine());
+    button.setText("返回上一级");
+    button.setOnClickListener(v -> ((MainActivity) requireActivity()).backToToolbox());
     row.addView(button);
     return row;
   }

@@ -39,7 +39,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="本月收支"
+                android:text="@string/home_summary_title"
                 android:textColor="@color/white"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -59,6 +59,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvMonthlyIncomeLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/month_income_label"
@@ -84,6 +85,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvMonthlyExpenseLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/month_expense_label"
@@ -109,6 +111,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tvMonthlyBalanceLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/month_balance_label"

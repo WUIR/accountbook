@@ -24,6 +24,7 @@ import com.example.accountbook.fragment.RecycleBinFragment;
 import com.example.accountbook.fragment.StatisticsFragment;
 import com.example.accountbook.fragment.AccountManageFragment;
 import com.example.accountbook.fragment.CategoryManageFragment;
+import com.example.accountbook.fragment.ToolboxFragment;
 import com.google.android.material.navigation.NavigationBarView;
 
 import android.view.MenuItem;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
   private static final String TAG_EXPORT = "export";
   private static final String TAG_ACCOUNT_MANAGE = "account_manage";
   private static final String TAG_CATEGORY_MANAGE = "category_manage";
+  private static final String TAG_TOOLBOX = "toolbox";
 
   private String currentTag = TAG_HOME;
 
@@ -146,6 +148,10 @@ public class MainActivity extends AppCompatActivity {
     switchToFragment(TAG_EXPORT);
   }
 
+  public void openToolbox() {
+    switchToFragment(TAG_TOOLBOX);
+  }
+
   public void openAccountManage() {
     switchToFragment(TAG_ACCOUNT_MANAGE);
   }
@@ -178,6 +184,10 @@ public class MainActivity extends AppCompatActivity {
     switchToFragment(TAG_MINE);
   }
 
+  public void backToToolbox() {
+    switchToFragment(TAG_TOOLBOX);
+  }
+
   public void backToBillList() {
     switchToFragment(TAG_BILL_LIST);
   }
@@ -199,6 +209,8 @@ public class MainActivity extends AppCompatActivity {
       return new AccountManageFragment();
     } else if (TAG_CATEGORY_MANAGE.equals(tag)) {
       return new CategoryManageFragment();
+    } else if (TAG_TOOLBOX.equals(tag)) {
+      return new ToolboxFragment();
     }
     return new HomeFragment();
   }

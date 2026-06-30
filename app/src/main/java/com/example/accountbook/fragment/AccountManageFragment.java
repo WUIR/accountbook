@@ -1,6 +1,7 @@
 package com.example.accountbook.fragment;
 
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -115,25 +116,46 @@ public class AccountManageFragment extends Fragment {
     nameInput.setHint("账户名称");
     Spinner typeSpinner = new Spinner(requireContext());
     typeSpinner.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, TYPE_LABELS));
+    EditText balanceInput = new EditText(requireContext());
+    balanceInput.setHint("账户余额");
+    balanceInput.setInputType(InputType.TYPE_CLASS_NUMBER
+        | InputType.TYPE_NUMBER_FLAG_DECIMAL
+        | InputType.TYPE_NUMBER_FLAG_SIGNED);
     content.addView(nameInput);
     content.addView(typeSpinner);
+    content.addView(balanceInput);
     if (account != null) {
       nameInput.setText(account.getName());
       typeSpinner.setSelection(typeIndex(account.getAccountType()));
+      balanceInput.setText(String.valueOf(account.getBalance()));
     }
     new AlertDialog.Builder(requireContext())
         .setTitle(account == null ? "新增账户" : "编辑账户")
         .setView(content)
-        .setPositiveButton("保存", (dialog, which) -> saveAccount(account, nameInput, typeSpinner))
+        .setPositiveButton("保存", (dialog, which) -> saveAccount(account, nameInput, typeSpinner, balanceInput))
         .setNegativeButton("取消", null)
         .show();
   }
 
-  private void saveAccount(@Nullable Account source, EditText nameInput, Spinner typeSpinner) {
+  private void saveAccount(
+      @Nullable Account source,
+      EditText nameInput,
+      Spinner typeSpinner,
+      EditText balanceInput) {
     String name = nameInput.getText().toString().trim();
     if (TextUtils.isEmpty(name)) {
       Toast.makeText(requireContext(), "账户名称不能为空", Toast.LENGTH_SHORT).show();
       return;
+    }
+    double balance = 0;
+    String balanceText = balanceInput.getText().toString().trim();
+    if (!TextUtils.isEmpty(balanceText)) {
+      try {
+        balance = Double.parseDouble(balanceText);
+      } catch (NumberFormatException e) {
+        Toast.makeText(requireContext(), "账户余额格式不正确", Toast.LENGTH_SHORT).show();
+        return;
+      }
     }
     long excludeId = source == null ? -1 : source.getId();
     if (accountDao.existsActiveAccountName(name, excludeId)) {
@@ -143,9 +165,9 @@ public class AccountManageFragment extends Fragment {
     Account account = source == null ? new Account() : source;
     account.setName(name);
     account.setAccountType(TYPE_VALUES[typeSpinner.getSelectedItemPosition()]);
+    account.setBalance(balance);
     account.setActive(source == null || source.isActive());
     if (source == null) {
-      account.setBalance(0);
       accountDao.insertAccount(account);
     } else {
       accountDao.updateAccount(account);
@@ -176,8 +198,8 @@ public class AccountManageFragment extends Fragment {
     title.setTypeface(null, android.graphics.Typeface.BOLD);
     row.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
     Button button = new Button(requireContext());
-    button.setText("返回我的");
-    button.setOnClickListener(v -> ((MainActivity) requireActivity()).backToMine());
+    button.setText("返回上一级");
+    button.setOnClickListener(v -> ((MainActivity) requireActivity()).backToToolbox());
     row.addView(button);
     return row;
   }

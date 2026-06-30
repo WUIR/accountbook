@@ -8,6 +8,7 @@ public class PreferenceUtils {
   private static final String FILE_BUDGET_CONFIG = "budget_config";
   private static final String KEY_MONTHLY_BUDGET = "monthly_budget";
   private static final String KEY_BUDGET_WARN_ENABLED = "budget_warn_enabled";
+  private static final String KEY_HOME_BUDGET_MODE_ENABLED = "home_budget_mode_enabled";
 
   private PreferenceUtils() {
   }
@@ -27,6 +28,17 @@ public class PreferenceUtils {
 
   public static boolean isBudgetWarnEnabled(Context context) {
     return getPreferences(context).getBoolean(KEY_BUDGET_WARN_ENABLED, true);
+  }
+
+  public static void saveHomeBudgetModeEnabled(Context context, boolean enabled) {
+    getPreferences(context)
+        .edit()
+        .putBoolean(KEY_HOME_BUDGET_MODE_ENABLED, enabled)
+        .apply();
+  }
+
+  public static boolean isHomeBudgetModeEnabled(Context context) {
+    return getPreferences(context).getBoolean(KEY_HOME_BUDGET_MODE_ENABLED, false);
   }
 
   private static SharedPreferences getPreferences(Context context) {

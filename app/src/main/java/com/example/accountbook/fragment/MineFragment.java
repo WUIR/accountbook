@@ -2,10 +2,10 @@ package com.example.accountbook.fragment;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -31,6 +31,10 @@ public class MineFragment extends Fragment {
   private LinearLayout accountListContainer;
   private EditText etMonthlyBudget;
   private CheckBox cbBudgetWarnEnabled;
+  private TextView btnHomeBudgetMode;
+  private boolean homeBudgetModeEnabled;
+  private TextView tvAccountTotalBalance;
+  private TextView tvAccountCount;
 
   @Nullable
   @Override
@@ -47,18 +51,16 @@ public class MineFragment extends Fragment {
     accountDao = new AccountDao(requireContext());
     etMonthlyBudget = view.findViewById(R.id.etMonthlyBudget);
     cbBudgetWarnEnabled = view.findViewById(R.id.cbBudgetWarnEnabled);
+    btnHomeBudgetMode = view.findViewById(R.id.btnHomeBudgetMode);
     accountListContainer = view.findViewById(R.id.accountListContainer);
-    Button btnSaveBudget = view.findViewById(R.id.btnSaveBudget);
+    tvAccountTotalBalance = view.findViewById(R.id.tvAccountTotalBalance);
+    tvAccountCount = view.findViewById(R.id.tvAccountCount);
+    View btnSaveBudget = view.findViewById(R.id.btnSaveBudget);
     btnSaveBudget.setOnClickListener(v -> saveBudgetConfig());
-    View toolRecycleBin = view.findViewById(R.id.toolRecycleBin);
-    toolRecycleBin.setOnClickListener(v -> ((MainActivity) requireActivity()).openRecycleBin());
-    View toolExport = view.findViewById(R.id.toolExport);
-    toolExport.setOnClickListener(v -> ((MainActivity) requireActivity()).openExport());
-    View toolAccountManage = view.findViewById(R.id.toolAccountManage);
-    toolAccountManage.setOnClickListener(v -> ((MainActivity) requireActivity()).openAccountManage());
-    View toolCategoryManage = view.findViewById(R.id.toolCategoryManage);
-    toolCategoryManage.setOnClickListener(v -> ((MainActivity) requireActivity()).openCategoryManage());
+    View entryGeneralSettings = view.findViewById(R.id.entryGeneralSettings);
+    entryGeneralSettings.setOnClickListener(v -> ((MainActivity) requireActivity()).openToolbox());
     loadBudgetConfig();
+    btnHomeBudgetMode.setOnClickListener(v -> toggleHomeBudgetMode());
     refreshAccountBalances();
   }
 
@@ -72,6 +74,8 @@ public class MineFragment extends Fragment {
 
   private void refreshAccountBalances() {
     List<Account> accounts = accountDao.getAllAccounts();
+    tvAccountTotalBalance.setText(formatMoney(calculateTotalBalance(accounts)));
+    tvAccountCount.setText(getString(R.string.account_count_value, accounts.size()));
     accountListContainer.removeAllViews();
     if (accounts.isEmpty()) {
       TextView emptyView = createAccountTextView(getString(R.string.no_accounts));
@@ -79,7 +83,7 @@ public class MineFragment extends Fragment {
       return;
     }
     for (Account account : accounts) {
-      accountListContainer.addView(createAccountTextView(formatAccount(account)));
+      accountListContainer.addView(createAccountRowView(account));
     }
   }
 
@@ -89,6 +93,8 @@ public class MineFragment extends Fragment {
         ? String.format(Locale.CHINA, "%.2f", monthlyBudget)
         : "");
     cbBudgetWarnEnabled.setChecked(PreferenceUtils.isBudgetWarnEnabled(requireContext()));
+    homeBudgetModeEnabled = PreferenceUtils.isHomeBudgetModeEnabled(requireContext());
+    updateHomeBudgetModeButton();
   }
 
   private void saveBudgetConfig() {
@@ -111,6 +117,28 @@ public class MineFragment extends Fragment {
     Toast.makeText(requireContext(), R.string.save_budget_success, Toast.LENGTH_SHORT).show();
   }
 
+  private void toggleHomeBudgetMode() {
+    homeBudgetModeEnabled = !homeBudgetModeEnabled;
+    PreferenceUtils.saveHomeBudgetModeEnabled(requireContext(), homeBudgetModeEnabled);
+    updateHomeBudgetModeButton();
+    Toast.makeText(
+        requireContext(),
+        homeBudgetModeEnabled ? R.string.home_budget_mode_enabled : R.string.home_budget_mode_disabled,
+        Toast.LENGTH_SHORT).show();
+  }
+
+  private void updateHomeBudgetModeButton() {
+    btnHomeBudgetMode.setText(homeBudgetModeEnabled
+        ? R.string.home_budget_mode_on
+        : R.string.home_budget_mode_off);
+    btnHomeBudgetMode.setBackgroundResource(homeBudgetModeEnabled
+        ? R.drawable.bg_save_button
+        : R.drawable.bg_plain_button);
+    btnHomeBudgetMode.setTextColor(homeBudgetModeEnabled
+        ? getColor(R.color.white)
+        : getColor(R.color.text_primary));
+  }
+
   private TextView createAccountTextView(String text) {
     TextView textView = new TextView(requireContext());
     textView.setLayoutParams(new LinearLayout.LayoutParams(
@@ -123,7 +151,75 @@ public class MineFragment extends Fragment {
     return textView;
   }
 
-  private String formatAccount(Account account) {
-    return String.format(Locale.CHINA, "%s  ¥%.2f", account.getName(), account.getBalance());
+  private View createAccountRowView(Account account) {
+    LinearLayout rowView = new LinearLayout(requireContext());
+    LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT);
+    rowView.setLayoutParams(rowParams);
+    rowView.setGravity(Gravity.CENTER_VERTICAL);
+    rowView.setOrientation(LinearLayout.HORIZONTAL);
+    rowView.setPadding(0, dpToPx(10), 0, dpToPx(10));
+
+    TextView markView = new TextView(requireContext());
+    markView.setLayoutParams(new LinearLayout.LayoutParams(dpToPx(36), dpToPx(36)));
+    markView.setBackgroundResource(R.drawable.bg_category_dot);
+    markView.setGravity(Gravity.CENTER);
+    markView.setText(getAccountInitial(account));
+    markView.setTextColor(getColor(R.color.brand_green));
+    markView.setTextSize(14);
+
+    TextView nameView = new TextView(requireContext());
+    LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(
+        0,
+        ViewGroup.LayoutParams.WRAP_CONTENT,
+        1);
+    nameParams.setMargins(dpToPx(12), 0, dpToPx(12), 0);
+    nameView.setLayoutParams(nameParams);
+    nameView.setText(account.getName());
+    nameView.setTextColor(getColor(account.isActive() ? R.color.text_primary : R.color.text_secondary));
+    nameView.setTextSize(15);
+
+    TextView balanceView = new TextView(requireContext());
+    balanceView.setLayoutParams(new LinearLayout.LayoutParams(
+        ViewGroup.LayoutParams.WRAP_CONTENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT));
+    balanceView.setGravity(Gravity.END);
+    balanceView.setText(formatMoney(account.getBalance()));
+    balanceView.setTextColor(getColor(account.getBalance() < 0 ? R.color.expense : R.color.text_primary));
+    balanceView.setTextSize(15);
+
+    rowView.addView(markView);
+    rowView.addView(nameView);
+    rowView.addView(balanceView);
+    return rowView;
+  }
+
+  private double calculateTotalBalance(List<Account> accounts) {
+    double total = 0;
+    for (Account account : accounts) {
+      total += account.getBalance();
+    }
+    return total;
+  }
+
+  private String formatMoney(double amount) {
+    return String.format(Locale.CHINA, "¥%.2f", amount);
+  }
+
+  private String getAccountInitial(Account account) {
+    String name = account.getName();
+    if (TextUtils.isEmpty(name)) {
+      return "账";
+    }
+    return name.substring(0, 1);
+  }
+
+  private int getColor(int colorRes) {
+    return getResources().getColor(colorRes, requireContext().getTheme());
+  }
+
+  private int dpToPx(int dp) {
+    return Math.round(dp * getResources().getDisplayMetrics().density);
   }
 }

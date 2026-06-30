@@ -18,6 +18,7 @@ import com.example.accountbook.MainActivity;
 import com.example.accountbook.R;
 import com.example.accountbook.db.BillRecordDao;
 import com.example.accountbook.model.BillRecord;
+import com.example.accountbook.util.PreferenceUtils;
 
 import java.util.Calendar;
 import java.util.List;
@@ -26,8 +27,11 @@ import java.util.Locale;
 public class HomeFragment extends Fragment {
 
   private TextView tvMonthlyBalance;
+  private TextView tvMonthlyBalanceLabel;
   private TextView tvMonthlyIncome;
+  private TextView tvMonthlyIncomeLabel;
   private TextView tvMonthlyExpense;
+  private TextView tvMonthlyExpenseLabel;
   private LinearLayout recentBillsContainer;
   private BillRecordDao billRecordDao;
 
@@ -45,8 +49,11 @@ public class HomeFragment extends Fragment {
     super.onViewCreated(view, savedInstanceState);
     billRecordDao = new BillRecordDao(requireContext());
     tvMonthlyBalance = view.findViewById(R.id.tvMonthlyBalance);
+    tvMonthlyBalanceLabel = view.findViewById(R.id.tvMonthlyBalanceLabel);
     tvMonthlyIncome = view.findViewById(R.id.tvMonthlyIncome);
+    tvMonthlyIncomeLabel = view.findViewById(R.id.tvMonthlyIncomeLabel);
     tvMonthlyExpense = view.findViewById(R.id.tvMonthlyExpense);
+    tvMonthlyExpenseLabel = view.findViewById(R.id.tvMonthlyExpenseLabel);
     recentBillsContainer = view.findViewById(R.id.recentBillsContainer);
     view.findViewById(R.id.tvAllBills)
         .setOnClickListener(v -> ((MainActivity) requireActivity()).openBillList());
@@ -66,9 +73,23 @@ public class HomeFragment extends Fragment {
     String nextMonthStart = getNextMonthStart();
     double income = billRecordDao.getMonthlyTotal(BillRecord.TYPE_INCOME, monthStart, nextMonthStart);
     double expense = billRecordDao.getMonthlyTotal(BillRecord.TYPE_EXPENSE, monthStart, nextMonthStart);
-    tvMonthlyIncome.setText(formatMoney(income));
-    tvMonthlyExpense.setText(formatMoney(expense));
-    tvMonthlyBalance.setText(formatMoney(income - expense));
+    boolean budgetModeEnabled = PreferenceUtils.isHomeBudgetModeEnabled(requireContext());
+    double monthlyBudget = PreferenceUtils.getMonthlyBudget(requireContext());
+    if (budgetModeEnabled) {
+      tvMonthlyIncomeLabel.setText(R.string.month_budget_label);
+      tvMonthlyExpenseLabel.setText(R.string.month_used_label);
+      tvMonthlyBalanceLabel.setText(R.string.month_remaining_label);
+      tvMonthlyIncome.setText(formatMoney(monthlyBudget));
+      tvMonthlyExpense.setText(formatMoney(expense));
+      tvMonthlyBalance.setText(formatMoney(monthlyBudget - expense));
+    } else {
+      tvMonthlyIncomeLabel.setText(R.string.month_income_label);
+      tvMonthlyExpenseLabel.setText(R.string.month_expense_label);
+      tvMonthlyBalanceLabel.setText(R.string.month_balance_label);
+      tvMonthlyIncome.setText(formatMoney(income));
+      tvMonthlyExpense.setText(formatMoney(expense));
+      tvMonthlyBalance.setText(formatMoney(income - expense));
+    }
     refreshRecentBills();
   }
 
